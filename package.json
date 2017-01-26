@@ -4,7 +4,8 @@
   "description": "Price comparision backend",
   "main": "server.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start": "node --max_old_space_size=400 server.js --production"
   },
   "repository": {
     "type": "git",
