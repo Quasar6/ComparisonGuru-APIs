@@ -1,0 +1,26 @@
+{
+  "name": "comparisionguru",
+  "version": "1.0.0",
+  "description": "Price comparision backend",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryan652/ComparisionGuru-APIs.git"
+  },
+  "keywords": [
+    "price",
+    "lowest",
+    "rates",
+    "comparision",
+    "cheap"
+  ],
+  "author": "Priyank and Guilherme",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ryan652/ComparisionGuru-APIs/issues"
+  },
+  "homepage": "https://github.com/ryan652/ComparisionGuru-APIs#readme"
+}
