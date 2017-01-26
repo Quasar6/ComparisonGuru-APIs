@@ -40,7 +40,7 @@ server.use(function (req, res, next) {
     //    case `www`:
             server.set(`static`, `./static/home`);
             server.use(`/`, express.static(__dirname + `/static/home`));
-            break;
+            //break;
     /*    case `ryan`:
             server.set(`static`, `./static/ryan`);
             server.use(`/`, express.static(__dirname + `/static/ryan`));
