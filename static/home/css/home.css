@@ -1,0 +1,17 @@
+body {
+    margin: 4em;
+    margin-top: 6em;
+    background-color: darkgray;
+    text-align: center;
+    height: 76vh;
+    position: relative;
+}
+.title {
+    color: #414141;
+    position: absolute;
+    top: 4em;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+}
