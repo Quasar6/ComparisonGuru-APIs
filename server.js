@@ -64,6 +64,8 @@ server.use(`/static`, function (req, res) {
 let MongoClient = require(`mongodb`).MongoClient;
 
 let mongoURL;
+//mongoURL = `mongodb://127.0.0.1:27017/cguru`; // Local Node.js, local DB
+//mongoURL = `mongodb://admin:HW-Pzez5sxZK@127.0.0.1:27017/cguru`; // Local Node.js, Openshift DB
 // Openshift V2 DB URL
 if (process.env.OPENSHIFT_MONGODB_DB_USERNAME) {
     mongoURL = `mongodb://` +
@@ -73,16 +75,9 @@ if (process.env.OPENSHIFT_MONGODB_DB_USERNAME) {
             `${process.env.OPENSHIFT_MONGODB_DB_PORT}/` +
             process.env.OPENSHIFT_APP_NAME;
 }
-// Openshift V3 DB URL
-if (mongoURL == null && process.env.MONGODB_USER) {
-    mongoURL = `mongodb://` +
-    `${process.env.MONGODB_USER}:` +
-    `${process.env.MONGODB_PASSWORD}@` +
-    `${process.env.MONGODB_IP}:` +
-    `${process.env.MONGODB_PORT}/` +
-    process.env.MONGODB_DATABASE;
-} else if (mongoURL == null) {
-    mongoURL = `mongodb://admin:vyiNhzRX4qPE@127.0.0.1:27017/instapay`; // Local DB
+// Mongolab URL
+if (process.env.MONGOLAB_URI) {
+    mongoURL = process.env.MONGOLAB_URI;
 }
 
 /*if (server.get(`env`) === `production`) {
