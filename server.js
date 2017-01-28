@@ -38,7 +38,7 @@ server.set(`view engine`, `pug`);
 server.use(function (req, res, next) {
     //switch (req.subdomains[0]) {
     //    case `www`:
-            server.set(`static`, `./static/home`);
+            server.set(`views`, `./static/home`);
             server.use(`/`, express.static(__dirname + `/static/home`));
             //break;
     /*    case `ryan`:
@@ -138,18 +138,18 @@ MongoClient.connect(mongoURL, function(err, db) {
 
         module.db = db;
         module.ObjectId = require(`mongodb`).ObjectId;
-        module.log = log;
 
-        /*module.users = require(`./bin/db-users.js`);
-        module.vendors = require(`./bin/db-vendors.js`);
-        module.orders = require(`./bin/db-orders.js`);
-
-        server.use(`/`, require(`./bin/ep-post.js`));
-        server.use(`/`, require(`./bin/ep-get.js`));*/
+        module.users = require(`./bin/db-users.js`);
+        /*module.vendors = require(`./bin/db-vendors.js`);
+        module.orders = require(`./bin/db-orders.js`);*/
 
         console.log(`Connected successfully to database.`);
     } else console.log(`Database error: ${err.message}`);
 });
+
+module.log = log;
+server.use(`/`, require(`./bin/ep-post.js`));
+server.use(`/`, require(`./bin/ep-get.js`));
 
 server.listen(PORT, IP, function() {
     log(`Server started in ${environment} mode.`);
