@@ -6,7 +6,7 @@ let // PORT and IP where server listens
     log = function (message) { // Shorthand logging function
         console.log(`\n${message}`);
     },
-    environment = server.get(`env`); // Environment (production or development) where server is being deployed
+    environment = server.get(`env`); // Environment (production or development) where server has been deployed
 
 /**
  * Compress all responses
@@ -126,6 +126,8 @@ MongoClient.connect(mongoURL, function(err, db) {
         }
         if (environment === `production`) {
             server.set(`trust proxy`, 1); // trust first proxy
+        }
+        if (process.env.IS_SECURE === `1`) {
             sess.cookie.secure = true; // serve secure cookies
             sess.cookie.httpOnly = true;
         }
