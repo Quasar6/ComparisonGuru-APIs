@@ -6,7 +6,8 @@ let // PORT and IP where server listens
     log = function (message) { // Shorthand logging function
         console.log(`\n${message}`);
     },
-    environment = server.get(`env`); // Environment (production or development) where server has been deployed
+    environment = server.get(`env`), // Environment (production or development) where server has been deployed
+    request = require('request');
 
 /**
  * Compress all responses
@@ -107,7 +108,7 @@ MongoClient.connect(mongoURL, function(err, db) {
             genid: function(req) {
                 return uuid.v1(); // use unique id for sessions
             },
-            secret: "Signed by ryan872 @ Matrians",
+            secret: "Signed by ryan652 @ Quasar",
             resave: true,
             saveUninitialized: true,
             rolling: true,
@@ -145,8 +146,9 @@ MongoClient.connect(mongoURL, function(err, db) {
 });
 
 module.log = log;
-server.use(`/`, require(`./bin/ep-post.js`));
-server.use(`/`, require(`./bin/ep-get.js`));
+module.request = request;
+server.use(`/`, require(`./bin/user-apis.js`));
+server.use(`/`, require(`./bin/bestbuy-apis.js`));
 
 server.listen(PORT, IP, function() {
     log(`Server started in ${environment} mode.`);
