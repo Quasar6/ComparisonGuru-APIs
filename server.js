@@ -1,5 +1,5 @@
 let // PORT and IP where server listens
-    PORT = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
+    PORT = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8081,
     IP = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || `0.0.0.0`,
     express = require(`express`), // Express server
     server = express(),
@@ -8,6 +8,8 @@ let // PORT and IP where server listens
     },
     environment = server.get(`env`), // Environment (production or development) where server has been deployed
     request = require('request');
+
+    require('dotenv').config()
 
 /**
  * Compress all responses

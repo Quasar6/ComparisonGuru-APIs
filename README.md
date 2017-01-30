@@ -1,1 +1,1 @@
-# ComparisionGuru-APIs
+# ComparisonGuru-APIs
