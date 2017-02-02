@@ -1,7 +1,7 @@
 {
   "name": "comparisionguru",
   "version": "1.0.0",
-  "description": "Price comparision backend",
+  "description": "Price comparison backend",
   "main": "server.js",
   "scripts": {
     "test": "mocha",
@@ -28,6 +28,7 @@
     "body-parser": "^1.16.0",
     "compression": "^1.6.2",
     "connect-mongo": "^1.3.2",
+    "dotenv": "^4.0.0",
     "express": "^4.14.0",
     "express-session": "^1.15.0",
     "helmet": "^3.4.0",
