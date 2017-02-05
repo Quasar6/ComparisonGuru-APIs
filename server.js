@@ -18,7 +18,7 @@ let // PORT and IP where server listens
  */
 let compression = require(`compression`);
 server.use(compression());
-
+var JSONPath = require('JSONPath');
 /**
  * Add security headers
  * https://www.npmjs.com/package/helmet
