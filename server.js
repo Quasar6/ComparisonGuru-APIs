@@ -10,6 +10,7 @@ let // PORT and IP where server listens
     request = require('request');
 
     require('dotenv').config()
+      
 
 /**
  * Compress all responses
@@ -152,6 +153,7 @@ module.request = request;
 server.use(`/`, require(`./bin/user-apis.js`));
 server.use(`/`, require(`./bin/bestbuy-apis.js`));
 server.use(`/`, require(`./bin/ebay-apis.js`));
+server.use(`/`, require(`./bin/amazon-apis.js`));
 
 server.listen(PORT, IP, function() {
     log(`Server started in ${environment} mode.`);

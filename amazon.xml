@@ -1,0 +1,26 @@
+ <?xml version="1.0" ?>
+ <ItemSearchResponse xmlns="http://webservices.amazon.com/AWSECommerceService/2013-08-01">
+ <OperationRequest><RequestId>44064a8d-1e7c-4df0-9097-84c0a8b6d82a</RequestId><Arguments><Argument Name="AWSAccessKeyId" Value="AKIAIPD2W43TSCOD5MVQ"></Argument><Argument Name="AssociateTag" Value="mapd2016capst-20"></Argument>
+ <Argument Name="Keywords" Value="pixel"></Argument>
+ <Argument Name="Operation" Value="ItemSearch"></Argument>
+ <Argument Name="ResponseGroup" Value="ItemAttributes,Offers"></Argument><Argument Name="Service" Value="AWSECommerceService"></Argument><Argument Name="Signature" Value="UF6tmMqjD1Bn6/GXQVo0JuZcRoBjpkXgJQj/aej6YmQ="></Argument><Argument Name="Timestamp" Value="2017-02-04T23:31:35Z"></Argument><Argument Name="Version" Value="2013-08-01"></Argument></Arguments>
+ <RequestProcessingTime>0.0047502930000000</RequestProcessingTime></OperationRequest>
+ 
+http://webservices.amazon.com/onca/xml?Service=AWSECommerceService&SubscriptionId=AKIAIPD2W43TSCOD5MVQ&AssociateTag=mapd2016capst-20&Operation=ItemSearch&Keywords=pixel&SearchIndex=Blended&ResponseGroup=Request,Large
+
+API_KEY_AMAZON_awsId = "AKIAIPD2W43TSCOD5MVQ"
+API_KEY_Amazon_awsSecret= "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"
+API_KEY_AMAZON_assocId = "mapd2016capst-20"
+
+ <Items><Request><IsValid>True</IsValid><ItemSearchRequest>
+ <Keywords>pixel</Keywords><ResponseGroup>ItemAttributes</ResponseGroup>
+ <ResponseGroup>Offers</ResponseGroup></ItemSearchRequest></Request></Items></ItemSearchResponse>
+
+ <Items><Request><IsValid>True</IsValid><ItemSearchRequest><Keywords>kindle</Keywords>
+ <ResponseGroup>Small</ResponseGroup></ItemSearchRequest></Request></Items></ItemSearchResponse>
+
+
+  <?xml version="1.0" ?><ItemSearchResponse xmlns="http://webservices.amazon.com/AWSECommerceService/2013-08-01"><OperationRequest><RequestId>9f76dd95-3f58-4222-ad1a-f75d136dd593</RequestId><Arguments><Argument Name="AWSAccessKeyId" Value="AKIAIPD2W43TSCOD5MVQ"></Argument><Argument Name="AssociateTag" Value="mapd2016capst-20"></Argument><Argument Name="Keywords" Value="kindle"></Argument><Argument Name="Operation" Value="ItemSearch"></Argument><Argument Name="ResponseGroup" Value="Request,Large"></Argument><Argument Name="Service" Value="AWSECommerceService"></Argument><Argument Name="Signature" Value="zHvO6+w/RP2wrCgjjgyibb03dlcX4lJrpgc/Nl+et9s="></Argument><Argument Name="Timestamp" Value="2017-02-04T23:40:55Z"></Argument><Argument Name="Version" Value="2013-08-01"></Argument></Arguments><RequestProcessingTime>0.0053654160000000</RequestProcessingTime></OperationRequest><Items><Request><IsValid>True</IsValid>
+  <ItemSearchRequest><Keywords>kindle</Keywords>
+  <ResponseGroup>Request</ResponseGroup>
+  <ResponseGroup>Large</ResponseGroup></ItemSearchRequest></Request></Items></ItemSearchResponse>
