@@ -1,0 +1,9 @@
+var id;
+var name;
+var description;
+var category;
+var price;
+var image;
+var url;
+var store;
+var currency;
