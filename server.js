@@ -7,10 +7,11 @@ let // PORT and IP where server listens
         console.log(`\n${message}`);
     },
     environment = server.get(`env`), // Environment (production or development) where server has been deployed
-    request = require('request');
+    request = require(`request`),
+    JSONPath = require(`JSONPath`),
+    Fuse = require(`fuse.js`);
 
-    require('dotenv').config()
-      
+    require(`dotenv`).config();
 
 /**
  * Compress all responses
@@ -18,7 +19,6 @@ let // PORT and IP where server listens
  */
 let compression = require(`compression`);
 server.use(compression());
-var JSONPath = require('JSONPath');
 /**
  * Add security headers
  * https://www.npmjs.com/package/helmet
@@ -150,10 +150,13 @@ MongoClient.connect(mongoURL, function(err, db) {
 
 module.log = log;
 module.request = request;
+module.Fuse = Fuse;
+
 server.use(`/`, require(`./bin/user-apis.js`));
 server.use(`/`, require(`./bin/bestbuy-apis.js`));
 server.use(`/`, require(`./bin/ebay-apis.js`));
 server.use(`/`, require(`./bin/amazon-apis.js`));
+server.use(`/`, require(`./bin/walmart-apis.js`));
 
 server.listen(PORT, IP, function() {
     log(`Server started in ${environment} mode.`);

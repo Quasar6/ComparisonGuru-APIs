@@ -1,21 +1,30 @@
 class Product {
-    Id;// = {id: "id"};
-    Name; // = {name: "name"};
-    Description;
-    Category;
-    Price;
-    Image;
-    Url;
-    Store;
-    Currency;
 
-    // constructor(id, name) {
-    //     this.Id = id;
-    //     this.Name = Name;
-    // }
+    constructor (id, name, category, price, store, currency, imageURL, url) {
+        this.id = id;
+        this.name = name;
+        this.category = category;
+        this.price = price;
+        this.store = store;
+        this.currency = currency;
+        this.imageURL = imageURL;
+        this.url = url;
+    }
     
-    toString() {
-        return '(' + this.Id + ', ' + this.Name + ')';
+    toJSONString() {
+        return JSON.stringify({
+            id: this.id,
+            name: this.name,
+            category: this.category,
+            price: this.price,
+            store: this.store,
+            currency: this.currency,
+            imageURL: this.imageURL,
+            url: this.url
+        });
+    }
+
+    print() {
+        console.log(this.toJSONString());
     }
 }
-

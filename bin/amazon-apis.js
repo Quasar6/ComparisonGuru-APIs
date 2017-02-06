@@ -12,7 +12,7 @@ router.get(`/cheapest/amazon/:query`, function (req, res) {
         awsId:     amazonId,
         awsSecret: amazonSecret,
         assocId:  amazonAssocId,
-        locale:    'US',
+        locale:    'CA',
         merchantId: 'All' //,
     });
 
