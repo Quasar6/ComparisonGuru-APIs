@@ -4,7 +4,8 @@ let users = module.parent.users,
     log = module.parent.log,
     request = module.parent.request,
     Fuse = module.parent.Fuse,
-    apiKey = process.env.API_KEY_BEST_BUY;
+    apiKey = process.env.API_KEY_BEST_BUY,
+    categories = require(`../lib/constants.js`).categories;
 
 let router = require(`express`).Router();
 
@@ -19,29 +20,24 @@ router.get(`/cheapest/bestbuy/:category/:query`, function (req, res) {
 
     log(`REQUEST ON GET /: ${JSON.stringify(req.params)}`);
 
-    request(`https://api.bestbuy.com/v1/categories(name=${req.params.category}*)?apiKey=bVCTSpIkR67BFLFKHCfkHpjK&pageSize=100&format=json`,
-    function (error, response, body) {
+    let categoryId = categories.get(req.params.category).bestbuy;
+    let query = req.params.query.replace(/ /g, "&search=");
+
+    var url = `https://api.bestbuy.com/v1/products` 
+            + `((search=${query})`
+            + `&(categoryPath.id=${categoryId}))`
+            + `?apiKey=${apiKey}`
+            + `&sort=customerReviewAverage.asc`
+            + `&show=name,salePrice,modelNumber,sku,upc,regularPrice,onSale`
+            + `&format=json`
+            + `&condition=new`
+            + `&inStoreAvailability=true`
+            + `&pageSize=25`;
+    
+    request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
-            var options = {
-                tokenize: true,
-                findAllMatches: true,
-                keys: ['name', 'subCategories.name']
-            };
-
-            log(`BODY: ${body}`);
-
-            let fuse = new Fuse(JSON.parse(body).categories, options);
-            let category = fuse.search(req.params.category)[0];
-
-            log(`CATEGORY: ${JSON.stringify(category)}`);
-
-            let query = req.params.query.replace(/ /g, "&search=");
-            request(`https://api.bestbuy.com/v1/products((search=${query})&condition=new&inStoreAvailability=true&(categoryPath.id=${category.id}))?apiKey=${apiKey}&sort=name.asc&show=name,salePrice,manufacturer,modelNumber,includedItemList.includedItem,sku,upc,regularPrice,onSale&format=json`, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    res.status(response.statusCode);
-                    res.json(body);
-                }
-            });
+            res.status(response.statusCode);
+            res.json(JSON.parse(body));
         }
     });
 });

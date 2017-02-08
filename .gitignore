@@ -53,3 +53,8 @@ jspm_packages
 
 # dotenv environment variables file
 .env
+
+# Visual studio code files
+launch.json
+.vscode
+.DS_Store

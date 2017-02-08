@@ -4,7 +4,7 @@ let router = require(`express`).Router(),
     amazonAssocId = process.env.API_KEY_AMAZON_assocId 
 
 const {OperationHelper} = require('apac');
- 
+
 router.get(`/cheapest/amazon/:query`, function (req, res) {
      log(`REQUEST ON GET FROM AMAZON/: ${req.params.query}`);
 
@@ -60,8 +60,4 @@ function iterate(obj, stack) {
         }
     }
 
-
 module.exports = router;
-    
-
-

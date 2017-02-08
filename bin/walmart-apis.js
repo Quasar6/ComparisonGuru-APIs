@@ -4,7 +4,8 @@ let users = module.parent.users,
     log = module.parent.log,
     request = module.parent.request,
     Fuse = module.parent.Fuse,
-    apiKey = process.env.API_KEY_WALMART;
+    apiKey = process.env.API_KEY_WALMART,
+    categories = require(`../lib/constants.js`).categories;
 
 let router = require(`express`).Router();
 
@@ -12,25 +13,21 @@ router.get(`/cheapest/walmart/:category/:query`, function (req, res) {
 
     log(`REQUEST ON GET /: ${JSON.stringify(req.params)}`);
 
-    var categoryId;
+    let categoryId = categories.get(req.params.category).walmart;
 
-    request(`http://api.walmartlabs.com/v1/taxonomy?apiKey=${apiKey}`,
-    function (error, response, body) {
+    var url = `http://api.walmartlabs.com/v1/search`
+            + `?apiKey=${apiKey}`
+            + `&query=${req.params.query}`
+            + `&categoryId=${categoryId}`
+            + `&sort=customerRating`
+            + `&order=asc`
+            + `&numItems=25`
+            + `&format=json`;
+
+    request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
-            let options = {
-                tokenize: true,
-                findAllMatches: true,
-                keys: ['name']
-            };
-            let category = new Fuse(JSON.parse(body).categories, options).search(`${req.params.category}`);
-            log(`CATEGORY: ${JSON.stringify(category[0])}`);
-            request(`http://api.walmartlabs.com/v1/search?apiKey=${apiKey}&query=${req.params.query}&sort=price&order=asc&format=json&categoryId=${category[0].id}`,
-            function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    res.status(response.statusCode);
-                    res.json(JSON.parse(body));
-                }
-            });
+            res.status(response.statusCode);
+            res.json(JSON.parse(body));
         }
     });
 });
