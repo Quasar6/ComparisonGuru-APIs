@@ -3,20 +3,11 @@ let users = module.parent.users,
     orders = module.parent.orders,
     log = module.parent.log,
     request = module.parent.request,
-    Fuse = module.parent.Fuse,
-    apiKey = process.env.API_KEY_BEST_BUY,
     categories = require(`../lib/constants.js`).categories;
 
 let router = require(`express`).Router();
 
-router.get(`/`, function (req, res) {
-
-    log(`REQUEST ON GET /: ${JSON.stringify(req.params)}`);
-
-    res.render(`home`);
-});
-
-router.get(`/cheapest/bestbuy/:category/:query`, function (req, res) {
+router.get(`/cheapest/bestbuy/:query/:category`, function (req, res) {
 
     log(`REQUEST ON GET /: ${JSON.stringify(req.params)}`);
 
@@ -26,7 +17,7 @@ router.get(`/cheapest/bestbuy/:category/:query`, function (req, res) {
     var url = `https://api.bestbuy.com/v1/products` 
             + `((search=${query})`
             + `&(categoryPath.id=${categoryId}))`
-            + `?apiKey=${apiKey}`
+            + `?apiKey=${process.env.API_KEY_BEST_BUY}`
             + `&sort=customerReviewAverage.asc`
             + `&show=name,salePrice,modelNumber,sku,upc,regularPrice,onSale`
             + `&format=json`

@@ -9,7 +9,7 @@ let // PORT and IP where server listens
     environment = server.get(`env`), // Environment (production or development) where server has been deployed
     request = require(`request`),
     JSONPath = require(`JSONPath`),
-    Fuse = require(`fuse.js`);
+    Promise = require(`bluebird`);
 
     require(`dotenv`).config();
 
@@ -150,13 +150,15 @@ MongoClient.connect(mongoURL, function(err, db) {
 
 module.log = log;
 module.request = request;
-module.Fuse = Fuse;
+module.Promise = Promise;
 
 server.use(`/`, require(`./bin/user-apis.js`));
 server.use(`/`, require(`./bin/bestbuy-apis.js`));
 server.use(`/`, require(`./bin/ebay-apis.js`));
 server.use(`/`, require(`./bin/amazon-apis.js`));
 server.use(`/`, require(`./bin/walmart-apis.js`));
+
+server.use(`/`, require(`./bin/cheapest.js`));
 
 server.listen(PORT, IP, function() {
     log(`Server started in ${environment} mode.`);

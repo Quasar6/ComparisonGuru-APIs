@@ -3,20 +3,18 @@ let users = module.parent.users,
     orders = module.parent.orders,
     log = module.parent.log,
     request = module.parent.request,
-    Fuse = module.parent.Fuse,
-    apiKey = process.env.API_KEY_WALMART,
     categories = require(`../lib/constants.js`).categories;
 
 let router = require(`express`).Router();
 
-router.get(`/cheapest/walmart/:category/:query`, function (req, res) {
+router.get(`/cheapest/walmart/:query/:category`, function (req, res) {
 
     log(`REQUEST ON GET /: ${JSON.stringify(req.params)}`);
 
     let categoryId = categories.get(req.params.category).walmart;
 
     var url = `http://api.walmartlabs.com/v1/search`
-            + `?apiKey=${apiKey}`
+            + `?apiKey=${process.env.API_KEY_WALMART}`
             + `&query=${req.params.query}`
             + `&categoryId=${categoryId}`
             + `&sort=customerRating`
