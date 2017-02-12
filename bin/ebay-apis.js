@@ -15,13 +15,34 @@ router.get(`/cheapest/ebay/:query`, function (req, res) {
             + `&callback=_cb_findItemsByKeywords`
             + `&REST-PAYLOAD`
             + `&keywords=${req.params.query}`
-            + `&paginationInput.entriesPerPage=6`
+            + `&paginationInput.entriesPerPage=25`
             + `&GLOBAL-ID=EBAY-ENCA`
             + `&siteid=2`;
     
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             body = body.substring(body.indexOf('{')).slice(0, -1);
+            res.status(response.statusCode);
+            res.json(JSON.parse(body));
+        }
+    });
+});
+
+router.get(`/categories/bestbuy/`, function (req, res) {
+
+    log(`REQUEST ON GET categories/bestbuy`);
+
+    let categoryId = categories.get(req.params.category).bestbuy;
+    let query = req.params.query.replace(/ /g, "&search=");
+
+    var url = `http://open.api.ebay.com/Shopping?callname=GetCategoryInfo`
+            + `&appid=${ebayApi}`
+            + `&siteid=2` //Canada
+            + `&CategoryID=-1`+
+            `&version=729&IncludeSelector=ChildCategories`;
+    
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
             res.status(response.statusCode);
             res.json(JSON.parse(body));
         }
