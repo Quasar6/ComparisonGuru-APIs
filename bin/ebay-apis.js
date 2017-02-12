@@ -5,7 +5,8 @@ let ebayApi = process.env.API_KEY_EBAY,
 
 router.get(`/cheapest/ebay/:query`, function (req, res) {
 
-    log(`REQUEST ON GET FROM EBAY/: ${req.params.query}`);
+    let query = req.params.query;
+    log(`REQUEST ON GET FROM EBAY/: ${query}`);
   
     var url = `https://svcs.ebay.com/services/search/FindingService/v1`
             + `?SECURITY-APPNAME=${ebayApi}`
@@ -14,7 +15,7 @@ router.get(`/cheapest/ebay/:query`, function (req, res) {
             + `&RESPONSE-DATA-FORMAT=JSON`
             + `&callback=_cb_findItemsByKeywords`
             + `&REST-PAYLOAD`
-            + `&keywords=${req.params.query}`
+            + `&keywords=${query}`
             + `&paginationInput.entriesPerPage=25`
             + `&GLOBAL-ID=EBAY-ENCA`
             + `&siteid=2`;
@@ -37,7 +38,7 @@ router.get(`/categories/bestbuy/`, function (req, res) {
 
     var url = `http://open.api.ebay.com/Shopping?callname=GetCategoryInfo`
             + `&appid=${ebayApi}`
-            + `&siteid=2` //Canada
+            + `&siteid=2` //Canada = 2 US = 1
             + `&CategoryID=-1`+
             `&version=729&IncludeSelector=ChildCategories`;
     

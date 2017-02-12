@@ -81,6 +81,42 @@ function fromWalmart(query, category, callback) {
     });
 }
 
+function fromEbay(query, category, callback) {
+
+    let categoryId = categories.get(category).ebay;
+
+    var url = `https://svcs.ebay.com/services/search/FindingService/v1?`
+    + `SECURITY-APPNAME=${process.env.API_KEY_EBAY}`
+    + `&OPERATION-NAME=findItemsAdvanced` 
+    + `&SERVICE-VERSION=1.0.0`
+    + `&RESPONSE-DATA-FORMAT=JSON`
+    + `&callback=_cb_findItemsByKeywords`
+    + `&REST-PAYLOAD&paginationInput.entriesPerPage=25`
+    + `&GLOBAL-ID=EBAY-ENCA&siteid=2&`
+    + `keywords=${query}`
+    + `&categoryId=${categoryId}`;
+
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            body = body.substring(body.indexOf('{')).slice(0, -1);
+            var cgWProducts = [];
+            for (var item = JSON.parse(body).findItemsAdvancedResponse[0].searchResult[0].item, i = item.length - 1; i > -1; i--) {
+                cgWProducts.push(new Product(
+                    item[i].itemId,
+                    item[i].title,
+                    category,
+                    item[i].sellingStatus[0].currentPrice[0].__value__,
+                    stores.ebay,
+                    currency.CAD,
+                    item[i].galleryURL,
+                    item[i].viewItemURL
+                ));
+            }
+            callback(null, cgWProducts);
+        }
+    });
+}
+
 router.get(`/cheapest/:query/:category`, function (req, res) {
 
     log(`REQUEST ON GET /: ${JSON.stringify(req.params)}`);
@@ -95,14 +131,20 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
             fromWalmart(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);
             });
+        },
+        function(callback) {
+            fromEbay(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
         }
     ],
     function(err, products) {
         var cgProducts = [];
         Array.prototype.push.apply(cgProducts, products[0]);
         Array.prototype.push.apply(cgProducts, products[1]);
-        cgProducts = cgProducts.sort(function(p1, p2) {
-            return p1.price - p2.price;
+        Array.prototype.push.apply(cgProducts, products[2]);
+        cgProducts = cgProducts.sort(function(p1, p2, p3) {
+            return p1.price - p2.price - p3.price;
         });
         res.json(cgProducts);
     });
