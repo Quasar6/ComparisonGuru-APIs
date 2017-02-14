@@ -9,23 +9,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ryan652/ComparisionGuru-APIs.git"
+    "url": "git+https://github.com/Quasar6/ComparisonGuru-APIs.git"
   },
   "keywords": [
     "price",
     "lowest",
     "rates",
-    "comparision",
+    "comparison",
     "cheap"
   ],
-  "author": "Priyank and Guilherme",
+  "author": "Team Quasar",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ryan652/ComparisionGuru-APIs/issues"
+    "url": "https://github.com/Quasar6/ComparisonGuru-APIs/issues"
   },
-  "homepage": "https://github.com/ryan652/ComparisionGuru-APIs#readme",
+  "homepage": "https://github.com/Quasar6/ComparisonGuru-APIs#readme",
   "dependencies": {
-    "JSONPath": "^0.11.2",
     "apac": "^3.0.2",
     "async": "^2.1.4",
     "body-parser": "^1.16.0",
@@ -39,7 +38,6 @@
     "mongodb": "^2.2.22",
     "pug": "^2.0.0-beta9",
     "request": "^2.79.0",
-    "stripe": "^4.15.0",
     "uuid": "^3.0.1"
   },
   "devDependencies": {

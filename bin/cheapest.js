@@ -1,6 +1,4 @@
 let users = module.parent.users,
-    vendors = module.parent.vendors,
-    orders = module.parent.orders,
     log = module.parent.log,
     request = module.parent.request,
     async = require(`async`),
@@ -15,11 +13,9 @@ let router = require(`express`).Router();
 function fromBestbuy(query, category, callback) {
 
     query = query.replace(/ /g, "&search=");
-    let categoryId = categories.get(category).bestbuy;
     
-    var url = `https://api.bestbuy.com/v1/products`
-            + `((search=${query})`
-            + `&(categoryPath.id=${categoryId}))`
+    let url = `https://api.bestbuy.com/v1/products`
+            + `((search=${query}))`
             + `?apiKey=${process.env.API_KEY_BEST_BUY}`
             + `&sort=customerReviewAverage.asc`
             + `&show=name,salePrice,modelNumber,sku,upc,regularPrice,onSale,mobileUrl,image,thumbnailImage`
@@ -28,10 +24,17 @@ function fromBestbuy(query, category, callback) {
             + `&inStoreAvailability=true`
             + `&pageSize=25`;
     
+    let cgCategory;
+    if (cgCategory = categories.get(category)) {
+        url = url.substr(0, url.indexOf(`(search=`))
+            + `(categoryPath.id=${cgCategory.bestbuy})&`
+            + url.substr(url.indexOf(`(search=`));
+    }
+
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
-            var cgBBProducts = [];
-            for (var products = JSON.parse(body).products, i = products.length - 1; i > -1; i--) {
+            let cgBBProducts = [];
+            for (let products = JSON.parse(body).products, i = products.length - 1; i > -1; i--) {
                 cgBBProducts.push(new Product(
                     products[i].sku,
                     products[i].name,
@@ -50,21 +53,21 @@ function fromBestbuy(query, category, callback) {
 
 function fromWalmart(query, category, callback) {
 
-    let categoryId = categories.get(category).walmart;
-
-    var url = `http://api.walmartlabs.com/v1/search`
+    let url = `http://api.walmartlabs.com/v1/search`
             + `?apiKey=${process.env.API_KEY_WALMART}`
             + `&query=${query}`
-            + `&categoryId=${categoryId}`
             + `&sort=customerRating`
             + `&order=asc`
             + `&numItems=25`
             + `&format=json`;
 
+    let cgCategory;
+    if (cgCategory = categories.get(category)) url += `&categoryId=${cgCategory.walmart}`;
+
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
-            var cgWProducts = [];
-            for (var products = JSON.parse(body).items, i = products.length - 1; i > -1; i--) {
+            let cgWProducts = [];
+            for (let products = JSON.parse(body).items, i = products.length - 1; i > -1; i--) {
                 cgWProducts.push(new Product(
                     products[i].itemId,
                     products[i].name,
@@ -83,43 +86,47 @@ function fromWalmart(query, category, callback) {
 
 function fromEbay(query, category, callback) {
 
-    let categoryId = categories.get(category).ebay;
+    let url = `https://svcs.ebay.com/services/search/FindingService/v1?`
+            + `SECURITY-APPNAME=${process.env.API_KEY_EBAY}`
+            + `&OPERATION-NAME=findItemsAdvanced` 
+            + `&SERVICE-VERSION=1.0.0`
+            + `&RESPONSE-DATA-FORMAT=JSON`
+            + `&callback=_cb_findItemsByKeywords`
+            + `&REST-PAYLOAD&paginationInput.entriesPerPage=25`
+            + `&GLOBAL-ID=EBAY-ENCA&siteid=2&`
+            + `keywords=${query}`;
 
-    var url = `https://svcs.ebay.com/services/search/FindingService/v1?`
-    + `SECURITY-APPNAME=${process.env.API_KEY_EBAY}`
-    + `&OPERATION-NAME=findItemsAdvanced` 
-    + `&SERVICE-VERSION=1.0.0`
-    + `&RESPONSE-DATA-FORMAT=JSON`
-    + `&callback=_cb_findItemsByKeywords`
-    + `&REST-PAYLOAD&paginationInput.entriesPerPage=25`
-    + `&GLOBAL-ID=EBAY-ENCA&siteid=2&`
-    + `keywords=${query}`
-    + `&categoryId=${categoryId}`;
+    let cgCategory;
+    if (cgCategory = categories.get(category)) url += `&categoryId=${cgCategory.ebay}`;
 
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             body = body.substring(body.indexOf('{')).slice(0, -1);
-            var cgWProducts = [];
-            for (var item = JSON.parse(body).findItemsAdvancedResponse[0].searchResult[0].item, i = item.length - 1; i > -1; i--) {
-                cgWProducts.push(new Product(
-                    item[i].itemId,
-                    item[i].title,
+            let cgEProducts = [];
+            for (let products = JSON.parse(body).findItemsAdvancedResponse[0].searchResult[0].item, i = products.length - 1; i > -1; i--) {
+                cgEProducts.push(new Product(
+                    products[i].itemId[0],
+                    products[i].title[0],
                     category,
-                    item[i].sellingStatus[0].currentPrice[0].__value__,
+                    products[i].sellingStatus[0].currentPrice[0].__value__[0],
                     stores.ebay,
                     currency.CAD,
-                    item[i].galleryURL,
-                    item[i].viewItemURL
+                    products[i].galleryURL[0],
+                    products[i].viewItemURL[0]
                 ));
             }
-            callback(null, cgWProducts);
+            callback(null, cgEProducts);
         }
     });
 }
 
+router.get(`/cheapest/:query`, function (req, res) {
+    res.redirect(`/cheapest/${req.params.query}/undefined_category`);
+});
+
 router.get(`/cheapest/:query/:category`, function (req, res) {
 
-    log(`REQUEST ON GET /: ${JSON.stringify(req.params)}`);
+    log(`REQUEST ON GET /cheapest/:query/:category: ${JSON.stringify(req.params)}`);
 
     async.parallel([
         function(callback) {
@@ -143,8 +150,8 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
         Array.prototype.push.apply(cgProducts, products[0]);
         Array.prototype.push.apply(cgProducts, products[1]);
         Array.prototype.push.apply(cgProducts, products[2]);
-        cgProducts = cgProducts.sort(function(p1, p2, p3) {
-            return p1.price - p2.price - p3.price;
+        cgProducts = cgProducts.sort(function(p1, p2) {
+            return p1.price - p2.price;
         });
         res.json(cgProducts);
     });

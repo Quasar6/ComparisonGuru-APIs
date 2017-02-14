@@ -7,9 +7,7 @@ let // PORT and IP where server listens
         console.log(`\n${message}`);
     },
     environment = server.get(`env`), // Environment (production or development) where server has been deployed
-    request = require(`request`),
-    JSONPath = require(`JSONPath`),
-    Promise = require(`bluebird`);
+    request = require(`request`);
 
     require(`dotenv`).config();
 
@@ -141,8 +139,6 @@ MongoClient.connect(mongoURL, function(err, db) {
         module.ObjectId = require(`mongodb`).ObjectId;
 
         module.users = require(`./bin/db-users.js`);
-        /*module.vendors = require(`./bin/db-vendors.js`);
-        module.orders = require(`./bin/db-orders.js`);*/
 
         console.log(`Connected successfully to database.`);
     } else console.log(`Database error: ${err.message}`);
@@ -150,13 +146,9 @@ MongoClient.connect(mongoURL, function(err, db) {
 
 module.log = log;
 module.request = request;
-module.Promise = Promise;
 
-server.use(`/`, require(`./bin/user-apis.js`));
-server.use(`/`, require(`./bin/bestbuy-apis.js`));
-server.use(`/`, require(`./bin/ebay-apis.js`));
+server.use(`/`, require(`./bin/user-apis.js`))
 server.use(`/`, require(`./bin/amazon-apis.js`));
-server.use(`/`, require(`./bin/walmart-apis.js`));
 
 server.use(`/`, require(`./bin/cheapest.js`));
 
