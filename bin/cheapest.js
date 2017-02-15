@@ -32,9 +32,10 @@ function fromBestbuy(query, category, callback) {
     }
 
     request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
+        let products;
+        if (!error && response.statusCode == 200 && (products = JSON.parse(body).products)) {
             let cgBBProducts = [];
-            for (let products = JSON.parse(body).products, i = products.length - 1; i > -1; i--) {
+            for (let i = products.length - 1; i > -1; i--) {
                 cgBBProducts.push(new Product(
                     products[i].sku,
                     products[i].name,
@@ -47,6 +48,10 @@ function fromBestbuy(query, category, callback) {
                 ));
             }
             callback(null, cgBBProducts);
+        } else if(error) {
+            callback(error, null);
+        } else {
+            callback({error: "Product not found."}, null);
         }
     });
 }
@@ -65,9 +70,10 @@ function fromWalmart(query, category, callback) {
     if (cgCategory = categories.get(category)) url += `&categoryId=${cgCategory.walmart}`;
 
     request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
+        let products;
+        if (!error && response.statusCode == 200 && (products = JSON.parse(body).items)) {
             let cgWProducts = [];
-            for (let products = JSON.parse(body).items, i = products.length - 1; i > -1; i--) {
+            for (let i = products.length - 1; i > -1; i--) {
                 cgWProducts.push(new Product(
                     products[i].itemId,
                     products[i].name,
@@ -80,6 +86,10 @@ function fromWalmart(query, category, callback) {
                 ));
             }
             callback(null, cgWProducts);
+        } else if(error) {
+            callback(error, null);
+        } else {
+            callback({error: "Product not found."}, null);
         }
     });
 }
@@ -100,22 +110,27 @@ function fromEbay(query, category, callback) {
     if (cgCategory = categories.get(category)) url += `&categoryId=${cgCategory.ebay}`;
 
     request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            body = body.substring(body.indexOf('{')).slice(0, -1);
+        let products;
+        if (!error && response.statusCode == 200 
+            && (products = JSON.parse(body.substring(body.indexOf('{')).slice(0, -1)))) {
             let cgEProducts = [];
-            for (let products = JSON.parse(body).findItemsAdvancedResponse[0].searchResult[0].item, i = products.length - 1; i > -1; i--) {
+            for (let i = products.length - 1; i > -1; i--) {
                 cgEProducts.push(new Product(
-                    products[i].itemId[0],
-                    products[i].title[0],
+                    products[i].itemId?products[i].itemId[0]:null,
+                    products[i].title?products[i].title[0]:null,
                     category,
-                    products[i].sellingStatus[0].currentPrice[0].__value__[0],
+                    products[i].sellingStatus?products[i].sellingStatus[0].currentPrice[0].__value__[0]:null,
                     stores.ebay,
                     currency.CAD,
-                    products[i].galleryURL[0],
-                    products[i].viewItemURL[0]
+                    products[i].galleryURL?products[i].galleryURL[0]:null,
+                    products[i].viewItemURL?products[i].viewItemURL[0]:null
                 ));
             }
             callback(null, cgEProducts);
+        } else if(error) {
+            callback(error, null);
+        } else {
+            callback({error: "Product not found."}, null);
         }
     });
 }
