@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "mocha",
-    "start": "node --max_old_space_size=400 server.js --production"
+    "start": "pm2 start server.js --node-args=\"--max_old_space_size=500\""
   },
   "repository": {
     "type": "git",
