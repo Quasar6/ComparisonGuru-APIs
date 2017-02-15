@@ -112,7 +112,8 @@ function fromEbay(query, category, callback) {
     request(url, function (error, response, body) {
         let products;
         if (!error && response.statusCode == 200 
-            && (products = JSON.parse(body.substring(body.indexOf('{')).slice(0, -1)))) {
+            && (products = JSON.parse(body.substring(body.indexOf('{')).slice(0, -1))
+                            .findItemsAdvancedResponse[0].searchResult[0].item)) {
             let cgEProducts = [];
             for (let i = products.length - 1; i > -1; i--) {
                 cgEProducts.push(new Product(
@@ -144,7 +145,7 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
     log(`REQUEST ON GET /cheapest/:query/:category: ${JSON.stringify(req.params)}`);
 
     async.parallel([
-        function(callback) {
+        /*function(callback) {
             fromBestbuy(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);
             });
@@ -153,7 +154,7 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
             fromWalmart(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);
             });
-        },
+        },*/
         function(callback) {
             fromEbay(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);
