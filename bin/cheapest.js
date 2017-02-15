@@ -145,7 +145,7 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
     log(`REQUEST ON GET /cheapest/:query/:category: ${JSON.stringify(req.params)}`);
 
     async.parallel([
-        /*function(callback) {
+        function(callback) {
             fromBestbuy(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);
             });
@@ -154,7 +154,7 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
             fromWalmart(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);
             });
-        },*/
+        },
         function(callback) {
             fromEbay(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);

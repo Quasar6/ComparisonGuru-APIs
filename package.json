@@ -1,11 +1,17 @@
 {
-  "name": "comparisionguru",
+  "name": "comparisonguru",
   "version": "1.0.0",
   "description": "Price comparison backend",
   "main": "server.js",
+  "config" : {
+    "port" : 8080,
+    "ip": "0.0.0.0"
+  },
   "scripts": {
     "test": "mocha",
-    "start": "pm2 start server.js --node-args=\"--max_old_space_size=500\""
+    "start": "pm2 start server.js --node-args=\"--max_old_space_size=500\"",
+    "stop": "pm2 stop 0",
+    "restart": "pm2 restart 0"
   },
   "repository": {
     "type": "git",
@@ -44,3 +50,4 @@
     "mocha": "^3.2.0"
   }
 }
+

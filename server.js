@@ -1,6 +1,6 @@
 let // PORT and IP where server listens
-    PORT = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8081,
-    IP = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || `0.0.0.0`,
+    PORT = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || process.env.npm_package_config_port,
+    IP = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || process.env.npm_package_config_ip,
     express = require(`express`), // Express server
     server = express(),
     log = function (message) { // Shorthand logging function
@@ -156,3 +156,4 @@ server.listen(PORT, IP, function() {
     log(`Server started in ${environment} mode.`);
     log(`Server home: http://${IP}:${PORT}/`);
 });
+
