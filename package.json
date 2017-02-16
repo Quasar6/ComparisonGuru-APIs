@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Price comparison backend",
   "main": "server.js",
-  "config" : {
-    "port" : 8080,
+  "config": {
+    "port": 8080,
     "ip": "0.0.0.0"
   },
   "scripts": {
@@ -44,10 +44,10 @@
     "mongodb": "^2.2.22",
     "pug": "^2.0.0-beta9",
     "request": "^2.79.0",
-    "uuid": "^3.0.1"
+    "uuid": "^3.0.1",
+    "xml2js": "^0.4.17"
   },
   "devDependencies": {
     "mocha": "^3.2.0"
   }
 }
-

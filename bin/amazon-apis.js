@@ -14,52 +14,37 @@ router.get(`/cheapest/amazon/:query`, function (req, res) {
         awsId: amazonId,
         awsSecret: amazonSecret,
         assocId: amazonAssocId,
-        locale: 'CA',
-        merchantId: 'All' //,
+        locale: "CA",
+        merchantId: "All"
     });
 
     opHelper.execute('ItemSearch', {
         //'SearchIndex': '', //category
         'Keywords': req.params.query,
         'ResponseGroup': 'ItemAttributes,Large', //'Request,ItemAttributes,Offers'
-        'SearchIndex': 'All',
-        //'ResponseGroup': 'ItemAttributes,Offers'
-
+        'SearchIndex': 'All'
     }).then((response) => {
-        console.log("Results object: ", response.result);
-        console.log("Raw response body: ", response.responseBody);
-
-        console.log('iterate reponse.result:')
-        iterate(response.result, '')
-        //response.result.ItemSearchResponse.Items
-
-        console.log('2js:');
-        var parseString = require('xml2js').parseString;
-        var xml = response.result;
-        parseString(xml, function (err, resultjs) {
-            console.log(resultjs);
+        require('xml2js').parseString(response.responseBody, {
+            trim: true,
+            normalize: true,
+            firstCharLowerCase: true,
+            stripPrefix: true,
+            parseNumbers: true,
+            parseBooleans: true,
+            normalizeTags: true,
+            explicitRoot: false,
+            ignoreAttrs: true,
+            mergeAttrs: true,
+            explicitArray: false,
+            async: true
+        }, function (err, resultjs) {
+            if (!err && resultjs) res.json(resultjs.items);
         });
-
-        res.status(200);
-        res.send(response.result);
     }).catch((err) => {
-        console.error("Something went wrong! ", err);
+        console.error("Something went wrong!", err);
         res.status(503);
         res.send();
     });
 });
-
-function iterate(obj, stack) {
-    for (var property in obj) {
-        if (obj.hasOwnProperty(property)) {
-            if (typeof obj[property] == "object") {
-                iterate(obj[property], stack + '.' + property);
-            } else {
-                console.log(property + "   " + obj[property]);
-                //$('#output').append($("<div/>").text(stack + '.' + property))
-            }
-        }
-    }
-}
 
 module.exports = router;

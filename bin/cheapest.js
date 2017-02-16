@@ -18,10 +18,9 @@ function fromBestbuy(query, category, callback) {
             + `((search=${query})&onlineAvailability=true)`
             + `?apiKey=${process.env.API_KEY_BEST_BUY}`
             + `&sort=bestSellingRank.asc`
-            + `&show=bestSellingRank,color,condition,image,longDescription,manufacturer,mobileUrl,name,onlineAvailability,salePrice,shippingCost,thumbnailImage`
+            + `&show=sku,bestSellingRank,color,condition,image,longDescription,manufacturer,mobileUrl,name,onlineAvailability,regularPrice,salePrice,shippingCost,thumbnailImage`
             + `&format=json`
             + `&condition=new`
-            + `&inStoreAvailability=true`
             + `&pageSize=10`;
     
     let cgCategory;
@@ -40,6 +39,7 @@ function fromBestbuy(query, category, callback) {
                     products[i].sku,
                     products[i].name,
                     category,
+                    products[i].regularPrice,
                     products[i].salePrice,
                     stores.bestbuy,
                     currency.USD,
@@ -72,14 +72,14 @@ function fromWalmart(query, category, callback) {
     request(url, function (error, response, body) {
         let products;
         if (!error && response.statusCode == 200 && (products = JSON.parse(body).items)) {
-            log ( JSON.stringify(JSON.parse(body).items), null, 4);
             let cgWProducts = [];
             for (let i = products.length - 1; i > -1; i--) {
                 cgWProducts.push(new Product(
                     products[i].itemId,
                     products[i].name,
-                    category,
-                    products[i].salePrice || products[i].msrp,
+                    products[i].categoryPath,
+                    products[i].msrp,
+                    products[i].salePrice,
                     stores.walmart,
                     currency.USD,
                     products[i].productUrl,
@@ -99,15 +99,22 @@ function fromEbay(query, category, callback) {
 
     let url = `https://svcs.ebay.com/services/search/FindingService/v1?`
             + `SECURITY-APPNAME=${process.env.API_KEY_EBAY}`
-            + `&OPERATION-NAME=findItemsAdvanced` 
+            + `&OPERATION-NAME=findItemsByKeywords`
             + `&SERVICE-VERSION=1.0.0`
             + `&RESPONSE-DATA-FORMAT=JSON`
-            + `&callback=_cb_findItemsByKeywords`
-            + `&REST-PAYLOAD&paginationInput.entriesPerPage=10`
-            + `&GLOBAL-ID=EBAY-ENCA&siteid=2`
-            + `SortOrderType=BestMatch`
-            + `&ConditionID=1000`
+            + `&GLOBAL-ID=EBAY-ENCA`
+            + `&REST-PAYLOAD`
+            + `&paginationInput.entriesPerPage=10`
+            + `&siteid=2`
+            + `&sortOrder=BestMatch`
+            + `&itemFilter(0).name=Condition`
+            + `&itemFilter(0).value(0)=New`
+            + `&itemFilter(0).value(1)=1000`
+            + `&itemFilter(1).name=HideDuplicateItems`
+            + `&itemFilter(1).value=true`
             + `&keywords=${query}`;
+
+            log(url);
 
     let cgCategory;
     if (cgCategory = categories.get(category)) url += `&categoryId=${cgCategory.ebay}`;
@@ -115,23 +122,28 @@ function fromEbay(query, category, callback) {
     request(url, function (error, response, body) {
         let products;
         if (!error && response.statusCode == 200 
-            && (products = JSON.parse(body.substring(body.indexOf('{')).slice(0, -1))
-                            .findItemsAdvancedResponse[0].searchResult[0].item)) {
+            && (products = JSON.parse(body)
+                            .findItemsByKeywordsResponse[0].searchResult[0].item)) {
             let cgEProducts = [];
             for (let i = products.length - 1; i > -1; i--) {
                 cgEProducts.push(new Product(
-                    products[i].itemId?products[i].itemId[0]:null,
-                    products[i].title?products[i].title[0]:null,
-                    category,
-                    products[i].sellingStatus?products[i].sellingStatus[0].currentPrice[0].__value__:null,
+                    products[i].itemId ? Number(products[i].itemId[0]) : null,
+                    products[i].title ? products[i].title[0] : null,
+                    products[i].primaryCategory ? products[i].primaryCategory[0].categoryName[0] : null,
+                    products[i].sellingStatus ? 
+                        (products[i].sellingStatus[0].convertedCurrentPrice ? 
+                            Number(products[i].sellingStatus[0].convertedCurrentPrice[0].__value__) : 
+                            Number(products[i].sellingStatus[0].currentPrice[0].__value__)
+                        ) : null,
+                    null,
                     stores.ebay,
                     currency.CAD,
-                    products[i].galleryURL?products[i].galleryURL[0]:null,
-                    products[i].viewItemURL?products[i].viewItemURL[0]:null
+                    products[i].viewItemURL ? products[i].viewItemURL[0] : null,
+                    products[i].galleryURL ? products[i].galleryURL[0] : null
                 ));
             }
             callback(null, cgEProducts);
-        } else if(error) {
+        } else if (error) {
             callback(error, null);
         } else {
             callback({error: "Product not found."}, null);
@@ -170,7 +182,7 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
         Array.prototype.push.apply(cgProducts, products[1]);
         Array.prototype.push.apply(cgProducts, products[2]);
         cgProducts = cgProducts.sort(function(p1, p2) {
-            return p1.price - p2.price;
+            return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
         });
         res.json(cgProducts);
     });
