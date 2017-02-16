@@ -104,6 +104,7 @@ function fromEbay(query, category, callback) {
             + `&callback=_cb_findItemsByKeywords`
             + `&REST-PAYLOAD&paginationInput.entriesPerPage=25`
             + `&GLOBAL-ID=EBAY-ENCA&siteid=2`
+            + `SortOrderType=BestMatch`
             + `&ConditionID=1000`
             + `&keywords=${query}`;
 
@@ -164,8 +165,8 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
     ],
     function(err, products) {
         var cgProducts = [];
-        Array.prototype.push.apply(cgProducts, products[0]);
-        Array.prototype.push.apply(cgProducts, products[1]);
+        // Array.prototype.push.apply(cgProducts, products[0]);
+        // Array.prototype.push.apply(cgProducts, products[1]);
         Array.prototype.push.apply(cgProducts, products[2]);
         cgProducts = cgProducts.sort(function(p1, p2) {
             return p1.price - p2.price;
