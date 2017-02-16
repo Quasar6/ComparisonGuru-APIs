@@ -1,7 +1,8 @@
 let router = require(`express`).Router(),
     amazonId = process.env.API_KEY_AMAZON_awsId,
     amazonSecret = process.env.API_KEY_Amazon_awsSecret,
-    amazonAssocId = process.env.API_KEY_AMAZON_assocId 
+    amazonAssocId = process.env.API_KEY_AMAZON_assocId,
+    log = module.parent.log;
 
 const {OperationHelper} = require(`apac`);
 

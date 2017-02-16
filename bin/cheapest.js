@@ -15,14 +15,14 @@ function fromBestbuy(query, category, callback) {
     query = query.replace(/ /g, "&search=");
     
     let url = `https://api.bestbuy.com/v1/products`
-            + `((search=${query}))`
+            + `((search=${query})&onlineAvailability=true)`
             + `?apiKey=${process.env.API_KEY_BEST_BUY}`
-            + `&sort=customerReviewAverage.asc`
-            + `&show=name,salePrice,modelNumber,sku,upc,regularPrice,onSale,mobileUrl,image,thumbnailImage`
+            + `&sort=bestSellingRank.asc`
+            + `&show=bestSellingRank,color,condition,image,longDescription,manufacturer,mobileUrl,name,onlineAvailability,salePrice,shippingCost,thumbnailImage`
             + `&format=json`
             + `&condition=new`
             + `&inStoreAvailability=true`
-            + `&pageSize=25`;
+            + `&pageSize=10`;
     
     let cgCategory;
     if (cgCategory = categories.get(category)) {
@@ -61,9 +61,9 @@ function fromWalmart(query, category, callback) {
     let url = `http://api.walmartlabs.com/v1/search`
             + `?apiKey=${process.env.API_KEY_WALMART}`
             + `&query=${query}`
-            + `&sort=customerRating`
+            + `&sort=relevance`
             + `&order=asc`
-            + `&numItems=25`
+            + `&numItems=10`
             + `&format=json`;
 
     let cgCategory;
@@ -72,13 +72,14 @@ function fromWalmart(query, category, callback) {
     request(url, function (error, response, body) {
         let products;
         if (!error && response.statusCode == 200 && (products = JSON.parse(body).items)) {
+            log ( JSON.stringify(JSON.parse(body).items), null, 4);
             let cgWProducts = [];
             for (let i = products.length - 1; i > -1; i--) {
                 cgWProducts.push(new Product(
                     products[i].itemId,
                     products[i].name,
                     category,
-                    products[i].salePrice,
+                    products[i].salePrice || products[i].msrp,
                     stores.walmart,
                     currency.USD,
                     products[i].productUrl,
@@ -102,7 +103,7 @@ function fromEbay(query, category, callback) {
             + `&SERVICE-VERSION=1.0.0`
             + `&RESPONSE-DATA-FORMAT=JSON`
             + `&callback=_cb_findItemsByKeywords`
-            + `&REST-PAYLOAD&paginationInput.entriesPerPage=25`
+            + `&REST-PAYLOAD&paginationInput.entriesPerPage=10`
             + `&GLOBAL-ID=EBAY-ENCA&siteid=2`
             + `SortOrderType=BestMatch`
             + `&ConditionID=1000`
@@ -165,8 +166,8 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
     ],
     function(err, products) {
         var cgProducts = [];
-        // Array.prototype.push.apply(cgProducts, products[0]);
-        // Array.prototype.push.apply(cgProducts, products[1]);
+        Array.prototype.push.apply(cgProducts, products[0]);
+        Array.prototype.push.apply(cgProducts, products[1]);
         Array.prototype.push.apply(cgProducts, products[2]);
         cgProducts = cgProducts.sort(function(p1, p2) {
             return p1.price - p2.price;
