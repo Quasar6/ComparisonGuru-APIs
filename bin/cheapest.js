@@ -103,8 +103,9 @@ function fromEbay(query, category, callback) {
             + `&RESPONSE-DATA-FORMAT=JSON`
             + `&callback=_cb_findItemsByKeywords`
             + `&REST-PAYLOAD&paginationInput.entriesPerPage=25`
-            + `&GLOBAL-ID=EBAY-ENCA&siteid=2&`
-            + `keywords=${query}`;
+            + `&GLOBAL-ID=EBAY-ENCA&siteid=2`
+            + `&ConditionID=1000`
+            + `&keywords=${query}`;
 
     let cgCategory;
     if (cgCategory = categories.get(category)) url += `&categoryId=${cgCategory.ebay}`;
@@ -120,7 +121,7 @@ function fromEbay(query, category, callback) {
                     products[i].itemId?products[i].itemId[0]:null,
                     products[i].title?products[i].title[0]:null,
                     category,
-                    products[i].sellingStatus?products[i].sellingStatus[0].currentPrice[0].__value__[0]:null,
+                    products[i].sellingStatus?products[i].sellingStatus[0].currentPrice[0].__value__:null,
                     stores.ebay,
                     currency.CAD,
                     products[i].galleryURL?products[i].galleryURL[0]:null,

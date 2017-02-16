@@ -1,6 +1,6 @@
 let // PORT and IP where server listens
-    PORT = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || process.env.npm_package_config_port,
-    IP = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || process.env.npm_package_config_ip,
+    PORT = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || process.env.npm_package_config_port || 8081,
+    IP = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || process.env.npm_package_config_ip || `0.0.0.0`,
     express = require(`express`), // Express server
     server = express(),
     log = function (message) { // Shorthand logging function
