@@ -56,6 +56,59 @@ function fromBestbuy(query, category, callback) {
     });
 }
 
+function fromAmazon(query, category, callback) {
+
+    const opHelper = new OperationHelper({
+        awsId: amazonId,
+        awsSecret: amazonSecret,
+        assocId: amazonAssocId,
+        locale: "CA",
+        merchantId: "All"
+    });
+
+    opHelper.execute('ItemSearch', {
+        'Keywords': req.params.query,
+        'ResponseGroup': 'ItemAttributes,Large',
+        'SearchIndex': 'All'
+    }).then((response) => {
+        require('xml2js').parseString(response.responseBody, {
+            trim: true,
+            normalize: true,
+            firstCharLowerCase: true,
+            stripPrefix: true,
+            parseNumbers: true,
+            parseBooleans: true,
+            normalizeTags: true,
+            explicitRoot: false,
+            ignoreAttrs: true,
+            mergeAttrs: true,
+            explicitArray: false,
+            async: true
+        }, function (err, resultjs) {
+            if (!err && resultjs) {
+                let cgAProducts = [];
+                for (let i = products.length - 1; i > -1; i--) {
+                    cgAProducts.push(new Product(
+                        products[i].sku,
+                        products[i].name,
+                        category,
+                        products[i].regularPrice,
+                        products[i].salePrice,
+                        stores.bestbuy,
+                        currency.USD,
+                        products[i].mobileUrl,
+                        products[i].thumbnailImage
+                    ));
+                }
+                callback(null, cgAProducts);
+            } else callback(err, null);
+        });
+    }).catch((err) => {
+        console.error("Something went wrong!", err);
+        callback(err, null);
+    });
+}
+
 function fromWalmart(query, category, callback) {
 
     let url = `http://api.walmartlabs.com/v1/search`
@@ -181,6 +234,69 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
         Array.prototype.push.apply(cgProducts, products[0]);
         Array.prototype.push.apply(cgProducts, products[1]);
         Array.prototype.push.apply(cgProducts, products[2]);
+        cgProducts = cgProducts.sort(function(p1, p2) {
+            return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
+        });
+        res.json(cgProducts);
+    });
+});
+
+router.get(`/cheapest/walmart/:query/:category`, function (req, res) {
+
+    log(`REQUEST ON GET /cheapest/walmart/:query/:category: ${JSON.stringify(req.params)}`);
+
+    async.parallel([
+        function(callback) {
+            fromWalmart(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
+        }
+    ],
+    function(err, products) {
+        var cgProducts = [];
+        Array.prototype.push.apply(cgProducts, products[0]);
+        cgProducts = cgProducts.sort(function(p1, p2) {
+            return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
+        });
+        res.json(cgProducts);
+    });
+});
+
+router.get(`/cheapest/bestbuy/:query/:category`, function (req, res) {
+
+    log(`REQUEST ON GET /cheapest/bestbuy/:query/:category: ${JSON.stringify(req.params)}`);
+
+    async.parallel([
+        function(callback) {
+            fromBestbuy(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
+        }
+    ],
+    function(err, products) {
+        var cgProducts = [];
+        Array.prototype.push.apply(cgProducts, products[0]);
+        cgProducts = cgProducts.sort(function(p1, p2) {
+            return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
+        });
+        res.json(cgProducts);
+    });
+});
+
+router.get(`/cheapest/ebay/:query/:category`, function (req, res) {
+
+    log(`REQUEST ON GET /cheapest/ebay/:query/:category: ${JSON.stringify(req.params)}`);
+
+    async.parallel([
+        function(callback) {
+            fromEbay(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
+        }
+    ],
+    function(err, products) {
+        var cgProducts = [];
+        Array.prototype.push.apply(cgProducts, products[0]);
         cgProducts = cgProducts.sort(function(p1, p2) {
             return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
         });
