@@ -9,6 +9,7 @@ let users = module.parent.users,
     stores = constants.stores;
 
 let router = require(`express`).Router();
+const {OperationHelper} = require(`apac`);
 
 function fromBestbuy(query, category, callback) {
 
@@ -57,19 +58,31 @@ function fromBestbuy(query, category, callback) {
 }
 
 function fromAmazon(query, category, callback) {
+    let amazonId = process.env.API_KEY_AMAZON_awsId,
+    amazonSecret = process.env.API_KEY_Amazon_awsSecret,
+    amazonAssocId = process.env.API_KEY_AMAZON_assocId;
+
+    var amazonCategory = "All";
+   
+    if (category && category != "undefined_category")
+    {
+        let cgCategory;
+         cgCategory = categories.get(category);
+         amazonCategory = cgCategory.amazon;
+    }
 
     const opHelper = new OperationHelper({
         awsId: amazonId,
         awsSecret: amazonSecret,
         assocId: amazonAssocId,
         locale: "CA",
-        merchantId: "All"
+        merchantId: amazonCategory
     });
 
     opHelper.execute('ItemSearch', {
-        'Keywords': req.params.query,
+        'Keywords': query,
         'ResponseGroup': 'ItemAttributes,Large',
-        'SearchIndex': 'All'
+        'SearchIndex': amazonCategory
     }).then((response) => {
         require('xml2js').parseString(response.responseBody, {
             trim: true,
@@ -87,24 +100,42 @@ function fromAmazon(query, category, callback) {
         }, function (err, resultjs) {
             if (!err && resultjs) {
                 let cgAProducts = [];
-                for (let i = products.length - 1; i > -1; i--) {
-                    cgAProducts.push(new Product(
-                        products[i].sku,
-                        products[i].name,
-                        category,
-                        products[i].regularPrice,
-                        products[i].salePrice,
-                        stores.bestbuy,
-                        currency.USD,
-                        products[i].mobileUrl,
-                        products[i].thumbnailImage
-                    ));
+                if (resultjs.items != null && resultjs.items.item != null)
+                {
+                    products = resultjs.items.item;
+                    for (let i = products.length - 1; i > -1; i--) {
+                        if (products[i].itemattributes && products[i].itemattributes)
+                        {
+                            var price = products[i].itemattributes && products[i].itemattributes.listprice ?  
+                                   [products[i].itemattributes.listprice.amount.slice(0, products[i].itemattributes.listprice.amount.length-2), ".", products[i].itemattributes.listprice.amount.slice(products[i].itemattributes.listprice.amount.length-2)].join('') 
+                                   : null;
+                            if (!price && products[i].offersummary && products[i].offersummary.lowestnewprice)
+                            {
+                                price = [products[i].offersummary.lowestnewprice.amount.slice(0,products[i].offersummary.lowestnewprice.amount.length-2), ".", 
+                                products[i].offersummary.lowestnewprice.amount.slice(products[i].offersummary.lowestnewprice.amount.length-2)].join('') 
+                            }
+                            if (price)
+                            {
+                                cgAProducts.push(new Product(
+                                    products[i].asin ? products[i].asin : null,
+                                    products[i].itemattributes ? products[i].itemattributes.title : null,
+                                    products[i].itemattributes ? products[i].itemattributes.binding : null,
+                                    parseFloat(price),
+                                    parseFloat(price),
+                                    stores.amazon,
+                                    currency.CAD,
+                                    products[i].detailpageurl,
+                                    products[i].smallimage.url
+                                ));
+                            }
+                        }
+                    }
                 }
                 callback(null, cgAProducts);
             } else callback(err, null);
         });
     }).catch((err) => {
-        console.error("Something went wrong!", err);
+        console.error("Something went wrong with Amazon API!", err);
         callback(err, null);
     });
 }
@@ -149,7 +180,6 @@ function fromWalmart(query, category, callback) {
 }
 
 function fromEbay(query, category, callback) {
-
     let url = `https://svcs.ebay.com/services/search/FindingService/v1?`
             + `SECURITY-APPNAME=${process.env.API_KEY_EBAY}`
             + `&OPERATION-NAME=findItemsByKeywords`
@@ -227,13 +257,19 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
             fromEbay(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);
             });
+        },
+         function(callback) {
+            fromAmazon(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
         }
     ],
-    function(err, products) {
+       function(err, products) {
         var cgProducts = [];
         Array.prototype.push.apply(cgProducts, products[0]);
         Array.prototype.push.apply(cgProducts, products[1]);
         Array.prototype.push.apply(cgProducts, products[2]);
+        Array.prototype.push.apply(cgProducts, products[3]);
         cgProducts = cgProducts.sort(function(p1, p2) {
             return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
         });

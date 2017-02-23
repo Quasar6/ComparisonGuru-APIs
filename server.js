@@ -149,7 +149,6 @@ module.request = request;
 
 server.use(`/`, require(`./bin/user-apis.js`))
 server.use(`/`, require(`./bin/amazon-apis.js`));
-
 server.use(`/`, require(`./bin/cheapest.js`));
 
 server.listen(PORT, IP, function() {
