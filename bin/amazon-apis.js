@@ -6,7 +6,7 @@ let router = require(`express`).Router(),
 
 const {OperationHelper} = require(`apac`);
 
-router.get(`/cheapest/amazon/:query`, function (req, res) {
+router.get(`/cheapest/amazonuih/:query`, function (req, res) {
 
     log(`REQUEST ON GET FROM AMAZON/: ${req.params.query}`);
 

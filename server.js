@@ -105,7 +105,7 @@ MongoClient.connect(mongoURL, function(err, db) {
         const MongoStore = require(`connect-mongo`)(session);
 
         let sess = {
-            name: "instapaysession",
+            name: "quasarsession",
             genid: function(req) {
                 return uuid.v1(); // use unique id for sessions
             },

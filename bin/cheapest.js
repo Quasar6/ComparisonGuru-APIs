@@ -100,35 +100,38 @@ function fromAmazon(query, category, callback) {
         }, function (err, resultjs) {
             if (!err && resultjs) {
                 let cgAProducts = [];
-                if (resultjs.items != null && resultjs.items.item != null)
-                {
+                if (resultjs.items != null && resultjs.items.item != null) {
                     products = resultjs.items.item;
                     for (let i = products.length - 1; i > -1; i--) {
-                        if (products[i].itemattributes && products[i].itemattributes)
-                        {
-                            var price = products[i].itemattributes && products[i].itemattributes.listprice ?  
-                                   [products[i].itemattributes.listprice.amount.slice(0, products[i].itemattributes.listprice.amount.length-2), ".", products[i].itemattributes.listprice.amount.slice(products[i].itemattributes.listprice.amount.length-2)].join('') 
-                                   : null;
-                            if (!price && products[i].offersummary && products[i].offersummary.lowestnewprice)
-                            {
-                                price = [products[i].offersummary.lowestnewprice.amount.slice(0,products[i].offersummary.lowestnewprice.amount.length-2), ".", 
-                                products[i].offersummary.lowestnewprice.amount.slice(products[i].offersummary.lowestnewprice.amount.length-2)].join('') 
-                            }
-                            if (price)
-                            {
-                                cgAProducts.push(new Product(
-                                    products[i].asin ? products[i].asin : null,
-                                    products[i].itemattributes ? products[i].itemattributes.title : null,
-                                    products[i].itemattributes ? products[i].itemattributes.binding : null,
-                                    parseFloat(price),
-                                    parseFloat(price),
-                                    stores.amazon,
-                                    currency.CAD,
-                                    products[i].detailpageurl,
-                                    products[i].smallimage.url
-                                ));
-                            }
+                        var price = 0;
+                        var salePrice = null;
+                        var currencyCode = "USD";
+                        if (products[i].itemattributes.listprice) {
+                            price = parseFloat(products[i].itemattributes.listprice.amount) / 100;
+                            currencyCode = products[i].itemattributes.listprice.currencycode;
                         }
+                        else if (products[i].offersummary.lowestnewprice) {
+                            price = parseFloat(products[i].offersummary.lowestnewprice.amount) / 100;
+                            currencyCode = products[i].offersummary.lowestnewprice.currencycode;
+                        }
+                        else if (products[i].offers.offer.offerlisting.price) {
+                            price = parseFloat(products[i].offers.offer.offerlisting.price.amount) / 100;
+                            currencyCode = products[i].offers.offer.offerlisting.price.currencycode;
+                        }
+                        if (products[i].offers.offer.offerlisting.saleprice) {
+                            salePrice = parseFloat(products[i].offers.offer.offerlisting.saleprice.amount) / 100;
+                        }
+                        cgAProducts.push(new Product(
+                            products[i].asin ? products[i].asin : null,
+                            products[i].itemattributes ? products[i].itemattributes.title : null,
+                            products[i].itemattributes ? products[i].itemattributes.binding : null,
+                            price,
+                            salePrice,
+                            stores.amazon,
+                            currencyCode,
+                            products[i].detailpageurl,
+                            products[i].smallimage.url
+                        ));
                     }
                 }
                 callback(null, cgAProducts);
@@ -197,8 +200,6 @@ function fromEbay(query, category, callback) {
             + `&itemFilter(1).value=true`
             + `&keywords=${query}`;
 
-            log(url);
-
     let cgCategory;
     if (cgCategory = categories.get(category)) url += `&categoryId=${cgCategory.ebay}`;
 
@@ -234,10 +235,73 @@ function fromEbay(query, category, callback) {
     });
 }
 
+router.get(`/cheapest/walmart/:query`, function (req, res) {
+    res.redirect(`/cheapest/walmart/${req.params.query}/undefined_category`);
+});
+router.get(`/cheapest/walmart/:query/:category`, function (req, res) {
+
+    log(`REQUEST ON GET /cheapest/walmart/:query/:category: ${JSON.stringify(req.params)}`);
+
+    async.parallel([
+        function(callback) {
+            fromWalmart(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
+        }
+    ], asyncParallelCallback.bind({res: res}));
+});
+
+router.get(`/cheapest/bestbuy/:query`, function (req, res) {
+    res.redirect(`/cheapest/bestbuy/${req.params.query}/undefined_category`);
+});
+router.get(`/cheapest/bestbuy/:query/:category`, function (req, res) {
+
+    log(`REQUEST ON GET /cheapest/bestbuy/:query/:category: ${JSON.stringify(req.params)}`);
+
+    async.parallel([
+        function(callback) {
+            fromBestbuy(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
+        }
+    ], asyncParallelCallback.bind({res: res}));
+});
+
+router.get(`/cheapest/ebay/:query`, function (req, res) {
+    res.redirect(`/cheapest/ebay/${req.params.query}/undefined_category`);
+});
+router.get(`/cheapest/ebay/:query/:category`, function (req, res) {
+
+    log(`REQUEST ON GET /cheapest/ebay/:query/:category: ${JSON.stringify(req.params)}`);
+
+    async.parallel([
+        function(callback) {
+            fromEbay(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
+        }
+    ], asyncParallelCallback.bind({res: res}));
+});
+
+router.get(`/cheapest/amazon/:query`, function (req, res) {
+    res.redirect(`/cheapest/amazon/${req.params.query}/undefined_category`);
+});
+router.get(`/cheapest/amazon/:query/:category`, function (req, res) {
+
+    log(`REQUEST ON GET /cheapest/amazon/:query/:category: ${JSON.stringify(req.params)}`);
+
+    async.parallel([
+        function(callback) {
+            fromAmazon(req.params.query, req.params.category, function (err, products) {
+                callback(null, products);
+            });
+        }
+    ], asyncParallelCallback.bind({res: res}));
+});
+
 router.get(`/cheapest/:query`, function (req, res) {
     res.redirect(`/cheapest/${req.params.query}/undefined_category`);
 });
-
 router.get(`/cheapest/:query/:category`, function (req, res) {
 
     log(`REQUEST ON GET /cheapest/:query/:category: ${JSON.stringify(req.params)}`);
@@ -258,86 +322,23 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
                 callback(null, products);
             });
         },
-         function(callback) {
+        function(callback) {
             fromAmazon(req.params.query, req.params.category, function (err, products) {
                 callback(null, products);
             });
         }
-    ],
-       function(err, products) {
-        var cgProducts = [];
-        Array.prototype.push.apply(cgProducts, products[0]);
-        Array.prototype.push.apply(cgProducts, products[1]);
-        Array.prototype.push.apply(cgProducts, products[2]);
-        Array.prototype.push.apply(cgProducts, products[3]);
-        cgProducts = cgProducts.sort(function(p1, p2) {
-            return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
-        });
-        res.json(cgProducts);
-    });
+    ], asyncParallelCallback.bind({res: res}));
 });
 
-router.get(`/cheapest/walmart/:query/:category`, function (req, res) {
-
-    log(`REQUEST ON GET /cheapest/walmart/:query/:category: ${JSON.stringify(req.params)}`);
-
-    async.parallel([
-        function(callback) {
-            fromWalmart(req.params.query, req.params.category, function (err, products) {
-                callback(null, products);
-            });
-        }
-    ],
-    function(err, products) {
-        var cgProducts = [];
-        Array.prototype.push.apply(cgProducts, products[0]);
-        cgProducts = cgProducts.sort(function(p1, p2) {
-            return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
-        });
-        res.json(cgProducts);
+let asyncParallelCallback = function(err, products) {
+    var cgProducts = [];
+    for (var i = products.length - 1; i > -1; i--) {
+        Array.prototype.push.apply(cgProducts, products[i]);
+    }
+    cgProducts = cgProducts.sort(function(p1, p2) {
+        return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
     });
-});
-
-router.get(`/cheapest/bestbuy/:query/:category`, function (req, res) {
-
-    log(`REQUEST ON GET /cheapest/bestbuy/:query/:category: ${JSON.stringify(req.params)}`);
-
-    async.parallel([
-        function(callback) {
-            fromBestbuy(req.params.query, req.params.category, function (err, products) {
-                callback(null, products);
-            });
-        }
-    ],
-    function(err, products) {
-        var cgProducts = [];
-        Array.prototype.push.apply(cgProducts, products[0]);
-        cgProducts = cgProducts.sort(function(p1, p2) {
-            return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
-        });
-        res.json(cgProducts);
-    });
-});
-
-router.get(`/cheapest/ebay/:query/:category`, function (req, res) {
-
-    log(`REQUEST ON GET /cheapest/ebay/:query/:category: ${JSON.stringify(req.params)}`);
-
-    async.parallel([
-        function(callback) {
-            fromEbay(req.params.query, req.params.category, function (err, products) {
-                callback(null, products);
-            });
-        }
-    ],
-    function(err, products) {
-        var cgProducts = [];
-        Array.prototype.push.apply(cgProducts, products[0]);
-        cgProducts = cgProducts.sort(function(p1, p2) {
-            return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
-        });
-        res.json(cgProducts);
-    });
-});
+    this.res.json(cgProducts);
+}
 
 module.exports = router;
