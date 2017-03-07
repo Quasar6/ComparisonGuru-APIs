@@ -59,30 +59,24 @@ function fromBestbuy(query, category, callback) {
 
 function fromAmazon(query, category, callback) {
     let amazonId = process.env.API_KEY_AMAZON_awsId,
-    amazonSecret = process.env.API_KEY_Amazon_awsSecret,
-    amazonAssocId = process.env.API_KEY_AMAZON_assocId;
+        amazonSecret = process.env.API_KEY_Amazon_awsSecret,
+        amazonAssocId = process.env.API_KEY_AMAZON_assocId;
 
-    var amazonCategory = "All";
-   
-    if (category && category != "undefined_category")
-    {
-        let cgCategory;
-         cgCategory = categories.get(category);
-         amazonCategory = cgCategory.amazon;
-    }
+    let cgCategory = categories.get(category);
+    cgCategory = cgCategory ? cgCategory.amazon : "All";
 
     const opHelper = new OperationHelper({
         awsId: amazonId,
         awsSecret: amazonSecret,
         assocId: amazonAssocId,
         locale: "CA",
-        merchantId: amazonCategory
+        merchantId: cgCategory
     });
 
     opHelper.execute('ItemSearch', {
         'Keywords': query,
         'ResponseGroup': 'ItemAttributes,Large',
-        'SearchIndex': amazonCategory
+        'SearchIndex': cgCategory
     }).then((response) => {
         require('xml2js').parseString(response.responseBody, {
             trim: true,
@@ -96,7 +90,7 @@ function fromAmazon(query, category, callback) {
             ignoreAttrs: true,
             mergeAttrs: true,
             explicitArray: false,
-            async: true
+            async: false
         }, function (err, resultjs) {
             if (!err && resultjs) {
                 let cgAProducts = [];
