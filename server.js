@@ -105,7 +105,7 @@ MongoClient.connect(mongoURL, function(err, db) {
         const MongoStore = require(`connect-mongo`)(session);
 
         let sess = {
-            name: "quasarsession",
+            name: "comparisonguru_session",
             genid: function(req) {
                 return uuid.v1(); // use unique id for sessions
             },
@@ -139,16 +139,18 @@ MongoClient.connect(mongoURL, function(err, db) {
         module.ObjectId = require(`mongodb`).ObjectId;
 
         module.users = require(`./bin/db-users.js`);
+        module.products = require(`./bin/db-products.js`);
 
-        console.log(`Connected successfully to database.`);
-    } else console.log(`Database error: ${err.message}`);
+        server.use(`/`, require(`./bin/user-apis.js`));
+        server.use(`/`, require(`./bin/product-apis.js`));
+        
+        log(`Connected successfully to database.`);
+    } else log(`Database error: ${err}`);
 });
 
 module.log = log;
 module.request = request;
 
-server.use(`/`, require(`./bin/user-apis.js`))
-server.use(`/`, require(`./bin/amazon-apis.js`));
 server.use(`/`, require(`./bin/cheapest.js`));
 
 server.listen(PORT, IP, function() {

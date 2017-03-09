@@ -94,12 +94,12 @@ function fromAmazon(query, category, callback) {
         }, function (err, resultjs) {
             if (!err && resultjs) {
                 let cgAProducts = [];
-                if (resultjs.items != null && resultjs.items.item != null) {
+                if (resultjs.items && resultjs.items.item) {
                     products = resultjs.items.item;
                     for (let i = products.length - 1; i > -1; i--) {
                         var price = 0;
                         var salePrice = null;
-                        var currencyCode = "USD";
+                        var currencyCode = "CAD";
                         if (products[i].itemattributes.listprice) {
                             price = parseFloat(products[i].itemattributes.listprice.amount) / 100;
                             currencyCode = products[i].itemattributes.listprice.currencycode;
