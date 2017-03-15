@@ -7,7 +7,8 @@ let // PORT and IP where server listens
         console.log(`\n${message}`);
     },
     environment = server.get(`env`), // Environment (production or development) where server has been deployed
-    request = require(`request`);
+    request = require(`request`),
+    geoip = require(`geoip-lite`);
 
     require(`dotenv`).config();
 
@@ -17,6 +18,11 @@ let // PORT and IP where server listens
  */
 let compression = require(`compression`);
 server.use(compression());
+
+if (environment === `production`) {
+    server.enable(`trust proxy`);
+}
+
 /**
  * Add security headers
  * https://www.npmjs.com/package/helmet
@@ -150,6 +156,7 @@ MongoClient.connect(mongoURL, function(err, db) {
 
 module.log = log;
 module.request = request;
+module.geoip = geoip;
 
 server.use(`/`, require(`./bin/cheapest.js`));
 

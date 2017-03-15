@@ -35,6 +35,8 @@ router.post(`/products`, function (req, res) {
 
 router.get(`/products`, function (req, res) {
 
+    log(`REQUEST ON GET /products`);
+
     products.findAll(function(err, docs) {
         let response = docs;
         res.status(200);
@@ -47,7 +49,7 @@ router.get(`/products`, function (req, res) {
             response = {"error": "No products found. Try again."};
         }
 
-        log(`RESPONSE FROM POST /products: ${response}`);
+        log(`RESPONSE FROM GET /products: ${JSON.stringify(response)}`);
 
         res.send(response);
     });

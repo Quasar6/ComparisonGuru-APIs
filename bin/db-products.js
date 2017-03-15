@@ -1,8 +1,6 @@
 let log = module.parent.log,
-
     // Get collection `products`
     products = module.parent.db.collection(`products`),
-
     ObjectId = module.parent.ObjectId;
 
 // Add new product to DB
@@ -33,7 +31,7 @@ exports.findByID = function (uid, callback) {
 
 // Find all products
 exports.findAll = function (callback) {
-    products.find({}).toArray(function (err, docs) {
+    products.find({}).sort({hits: 1}).limit(10).toArray(function (err, docs) {
         callback(err, docs);
     });
 }

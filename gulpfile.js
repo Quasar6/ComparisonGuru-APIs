@@ -4,8 +4,7 @@ var gulp = require('gulp'),
     env = require('gulp-env'),
     supertest = require('supertest');
 
-
-gulp.task('default', function(){
+gulp.task('default', function() {
     nodemon({
         script: 'server.js',
         ext: 'js',
@@ -14,12 +13,12 @@ gulp.task('default', function(){
         },
         ignore: ['./node_modules/**']
     })
-    .on('restart', function(){
+    .on('restart', function() {
         console.log('Restarting');
     });
 });
 
-gulp.task('test', function(){
+gulp.task('test', function() {
     env({vars: {ENV:'Test'}});
     gulp.src('tests/*.js', {read: false})
         .pipe(gulpMocha({reporter: 'nyan'}))

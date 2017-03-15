@@ -1,6 +1,6 @@
 {
   "name": "comparisonguru",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Price comparison backend",
   "main": "server.js",
   "config": {
@@ -8,10 +8,7 @@
     "ip": "0.0.0.0"
   },
   "scripts": {
-    "test": "mocha",
-    "start": "pm2 start server.js --node-args=\"--max_old_space_size=500\"",
-    "stop": "pm2 stop 0",
-    "restart": "pm2 restart 0"
+    "start": "node server.js --max_old_space_size=500"
   },
   "repository": {
     "type": "git",
@@ -22,7 +19,9 @@
     "lowest",
     "rates",
     "comparison",
-    "cheap"
+    "cheap",
+    "guru",
+    "comparison guru"
   ],
   "author": "Team Quasar",
   "license": "ISC",
@@ -39,7 +38,7 @@
     "dotenv": "^4.0.0",
     "express": "^4.15.2",
     "express-session": "^1.15.0",
-    "gulp": "^3.9.1",
+    "geoip-lite": "^1.2.0",
     "helmet": "^3.5.0",
     "moment": "^2.17.1",
     "mongodb": "^2.2.22",
@@ -47,12 +46,5 @@
     "request": "^2.81.0",
     "uuid": "^3.0.1",
     "xml2js": "^0.4.17"
-  },
-  "devDependencies": {
-    "gulp-env": "^0.4.0",
-    "gulp-mocha": "^4.1.0",
-    "gulp-nodemon": "^2.2.1",
-    "mocha": "^3.2.0",
-    "supertest": "^3.0.0"
   }
 }
