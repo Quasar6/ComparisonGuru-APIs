@@ -7,14 +7,15 @@ let users = module.parent.users,
     constants = require(`../lib/constants.js`),
     categories = constants.categories,
     currency = constants.currency,
+    country = constants.country,
     stores = constants.stores;
 
 let router = require(`express`).Router();
 const {OperationHelper} = require(`apac`);
 
-function fromBestbuy(params, callback) {
+function fromBestbuy(req, callback) {
 
-    query = params.query.replace(/ /g, "&search=");
+    query = req.params.query.replace(/ /g, "&search=");
     
     let url = `https://api.bestbuy.com/v1/products`
             + `((search=${query})&onlineAvailability=true)`
@@ -26,7 +27,7 @@ function fromBestbuy(params, callback) {
             + `&pageSize=10`;
     
     let cgCategory;
-    if (cgCategory = categories.get(params.category)) {
+    if (cgCategory = categories.get(req.params.category)) {
         url = url.substr(0, url.indexOf(`(search=`))
             + `(categoryPath.id=${cgCategory.bestbuy})&`
             + url.substr(url.indexOf(`(search=`));
@@ -40,13 +41,14 @@ function fromBestbuy(params, callback) {
                 cgBBProducts.push(new Product(
                     products[i].sku,
                     products[i].name,
-                    params.category,
+                    req.params.category,
                     products[i].regularPrice,
                     products[i].salePrice,
                     stores.bestbuy,
                     currency.USD,
                     products[i].mobileUrl,
-                    products[i].thumbnailImage
+                    products[i].thumbnailImage,
+                    country.US
                 ));
             }
             callback(null, cgBBProducts);
@@ -58,12 +60,12 @@ function fromBestbuy(params, callback) {
     });
 }
 
-function fromAmazon(params, callback) {
+function fromAmazon(req, callback) {
     let amazonId = process.env.API_KEY_AMAZON_awsId,
         amazonSecret = process.env.API_KEY_Amazon_awsSecret,
         amazonAssocId = process.env.API_KEY_AMAZON_assocId;
 
-    let cgCategory = categories.get(params.category);
+    let cgCategory = categories.get(req.params.category);
     cgCategory = cgCategory ? cgCategory.amazon : "All";
 
     const opHelper = new OperationHelper({
@@ -75,7 +77,7 @@ function fromAmazon(params, callback) {
     });
 
     opHelper.execute('ItemSearch', {
-        'Keywords': params.query,
+        'Keywords': req.params.query,
         'ResponseGroup': 'ItemAttributes,Large',
         'SearchIndex': cgCategory
     }).then((response) => {
@@ -125,7 +127,8 @@ function fromAmazon(params, callback) {
                             stores.amazon,
                             currencyCode,
                             products[i].detailpageurl,
-                            products[i].smallimage.url
+                            products[i].smallimage.url,
+                            currencyCode === currency.CAD ? country.CA : country.US
                         ));
                     }
                 }
@@ -138,18 +141,18 @@ function fromAmazon(params, callback) {
     });
 }
 
-function fromWalmart(params, callback) {
+function fromWalmart(req, callback) {
 
     let url = `http://api.walmartlabs.com/v1/search`
             + `?apiKey=${process.env.API_KEY_WALMART}`
-            + `&query=${params.query}`
+            + `&query=${req.params.query}`
             + `&sort=relevance`
             + `&order=asc`
             + `&numItems=10`
             + `&format=json`;
 
     let cgCategory;
-    if (cgCategory = categories.get(params.category)) url += `&categoryId=${cgCategory.walmart}`;
+    if (cgCategory = categories.get(req.params.category)) url += `&categoryId=${cgCategory.walmart}`;
 
     request(url, function (error, response, body) {
         let products;
@@ -165,7 +168,8 @@ function fromWalmart(params, callback) {
                     stores.walmart,
                     currency.USD,
                     products[i].productUrl,
-                    products[i].thumbnailImage
+                    products[i].thumbnailImage,
+                    country.US
                 ));
             }
             callback(null, cgWProducts);
@@ -177,7 +181,7 @@ function fromWalmart(params, callback) {
     });
 }
 
-function fromEbay(params, callback) {
+function fromEbay(req, callback) {
 
     let url = `https://svcs.ebay.com/services/search/FindingService/v1?`
             + `SECURITY-APPNAME=${process.env.API_KEY_EBAY}`
@@ -194,10 +198,10 @@ function fromEbay(params, callback) {
             + `&itemFilter(0).value(1)=1000`
             + `&itemFilter(1).name=HideDuplicateItems`
             + `&itemFilter(1).value=true`
-            + `&keywords=${params.query}`;
+            + `&keywords=${req.params.query}`;
 
     let cgCategory;
-    if (cgCategory = categories.get(params.category)) url += `&categoryId=${cgCategory.ebay}`;
+    if (cgCategory = categories.get(req.params.category)) url += `&categoryId=${cgCategory.ebay}`;
 
     request(url, function (error, response, body) {
         let products;
@@ -219,7 +223,8 @@ function fromEbay(params, callback) {
                     stores.ebay,
                     currency.CAD,
                     products[i].viewItemURL ? products[i].viewItemURL[0] : null,
-                    products[i].galleryURL ? products[i].galleryURL[0] : null
+                    products[i].galleryURL ? products[i].galleryURL[0] : null,
+                    country.CA
                 ));
             }
             callback(null, cgEProducts);
@@ -231,6 +236,12 @@ function fromEbay(params, callback) {
     });
 }
 
+router.use(function (req, res, next) {
+    req.geodata = {};
+    req.geodata.country = geoip.lookup(req.ip).country;
+    next();
+});
+
 router.get(`/cheapest/walmart/:query`, function (req, res) {
     res.redirect(`/cheapest/walmart/${req.params.query}/undefined_category`);
 });
@@ -238,11 +249,9 @@ router.get(`/cheapest/walmart/:query/:category`, function (req, res) {
 
     log(`REQUEST ON GET /cheapest/walmart/:query/:category: ${JSON.stringify(req.params)}`);
 
-    req.params.country = geoip.lookup(req.ip).country;
-
     async.parallel([
         function(callback) {
-            fromWalmart(req.params, function (err, products) {
+            fromWalmart(req, function (err, products) {
                 callback(null, products);
             });
         }
@@ -256,11 +265,9 @@ router.get(`/cheapest/bestbuy/:query/:category`, function (req, res) {
 
     log(`REQUEST ON GET /cheapest/bestbuy/:query/:category: ${JSON.stringify(req.params)}`);
 
-    req.params.country = geoip.lookup(req.ip).country;
-
     async.parallel([
         function(callback) {
-            fromBestbuy(req.params, function (err, products) {
+            fromBestbuy(req, function (err, products) {
                 callback(null, products);
             });
         }
@@ -274,11 +281,9 @@ router.get(`/cheapest/ebay/:query/:category`, function (req, res) {
 
     log(`REQUEST ON GET /cheapest/ebay/:query/:category: ${JSON.stringify(req.params)}`);
 
-    req.params.country = geoip.lookup(req.ip).country;
-
     async.parallel([
         function(callback) {
-            fromEbay(req.params, function (err, products) {
+            fromEbay(req, function (err, products) {
                 callback(null, products);
             });
         }
@@ -294,7 +299,7 @@ router.get(`/cheapest/amazon/:query/:category`, function (req, res) {
 
     async.parallel([
         function(callback) {
-            fromAmazon(req.params, function (err, products) {
+            fromAmazon(req, function (err, products) {
                 callback(null, products);
             });
         }
@@ -308,30 +313,24 @@ router.get(`/cheapest/:query/:category`, function (req, res) {
 
     log(`REQUEST ON GET /cheapest/:query/:category: ${JSON.stringify(req.params)}`);
 
-    log(req.ip);
-    log(JSON.stringify(geoip.lookup(req.ip)));
-    //req.params.country = geoip.lookup(req.ip).country;
-
-    req.params.country = geoip.lookup(req.ip).country;
-
     async.parallel([
         function(callback) {
-            fromBestbuy(req.params, function (err, products) {
+            fromBestbuy(req, function (err, products) {
                 callback(null, products);
             });
         },
         function(callback) {
-            fromWalmart(req.params, function (err, products) {
+            fromWalmart(req, function (err, products) {
                 callback(null, products);
             });
         },
         function(callback) {
-            fromEbay(req.params, function (err, products) {
+            fromEbay(req, function (err, products) {
                 callback(null, products);
             });
         },
         function(callback) {
-            fromAmazon(req.params, function (err, products) {
+            fromAmazon(req, function (err, products) {
                 callback(null, products);
             });
         }

@@ -1,4 +1,4 @@
-function Product (id, name, category, price, salePrice, store, currency, url, imageURL) {
+function Product (id, name, category, price, salePrice, store, currency, url, imageURL, shippingCountry) {
     this.id = id;
     this.name = name;
     this.category = category;
@@ -8,6 +8,7 @@ function Product (id, name, category, price, salePrice, store, currency, url, im
     this.currency = currency;
     this.url = url;
     this.imageURL = imageURL;
+    this.shippingCountry = shippingCountry;
 }
 
 Product.prototype.toJSONString = function() {
@@ -20,7 +21,8 @@ Product.prototype.toJSONString = function() {
         store: this.store,
         currency: this.currency,
         url: this.url,
-        imageURL: this.imageURL
+        imageURL: this.imageURL,
+        shippingCountry: this.shippingCountry
     });
 }
 

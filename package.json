@@ -8,7 +8,10 @@
     "ip": "0.0.0.0"
   },
   "scripts": {
-    "start": "node server.js --max_old_space_size=500"
+    "preinstall": "npm i -g pm2",
+    "start": "pm2 start server.js --node-args \"--max_old_space_size=500\"",
+    "stop": "pm2 stop all",
+    "restart": "pm2 restart all"
   },
   "repository": {
     "type": "git",
