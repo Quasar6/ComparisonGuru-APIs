@@ -1,14 +1,20 @@
 let // PORT and IP where server listens
-    PORT = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || process.env.npm_package_config_port || 8080,
-    IP = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || process.env.npm_package_config_ip || `0.0.0.0`,
+    PORT = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || process.env.npm_package_config_port || 8080,
+    IP = process.env.OPENSHIFT_NODEJS_IP || process.env.IP || process.env.npm_package_config_ip || `0.0.0.0`,
     express = require(`express`), // Express server
     server = express(),
-    log = function (message) { // Shorthand logging function
+    log = module.log = function (message) { // Shorthand logging function
         console.log(`\n${message}`);
     },
     environment = server.get(`env`), // Environment (production or development) where server has been deployed
-    request = require(`request`),
-    geoip = require(`geoip-lite`);
+    request = module.request = require(`request`),
+    geoip = module.geoip = require(`geoip-lite`),
+    async = module.async = require(`async`),
+    CronJob = require(`cron`).CronJob,
+    Product = module.Product = require(`./models/Product.js`),
+    rates = module.rates = {},
+    constants = module.constants = require(`./lib/constants.js`),
+    utils = require(`./lib/utils.js`);
 
     require(`dotenv`).config();
 
@@ -154,14 +160,15 @@ MongoClient.connect(mongoURL, function(err, db) {
     } else log(`Database error: ${err}`);
 });
 
-module.log = log;
-module.request = request;
-module.geoip = geoip;
-
 server.use(`/`, require(`./bin/cheapest.js`));
 
 server.listen(PORT, IP, function() {
     log(`Server started in ${environment} mode.`);
     log(`Server home: http://${IP}:${PORT}/`);
-});
 
+    utils.refreshRates();
+
+    new CronJob(`0 0 * * *`, function() {
+        utils.refreshRates();
+    }, null, true, 'America/Toronto');
+});

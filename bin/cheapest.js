@@ -2,16 +2,22 @@ let users = module.parent.users,
     log = module.parent.log,
     request = module.parent.request,
     geoip = module.parent.geoip,
-    async = require(`async`),
-    Product = require(`../models/Product.js`),
-    constants = require(`../lib/constants.js`),
+    async = module.parent.async,
+    Product = module.parent.Product,
+    constants = module.parent.constants,
     categories = constants.categories,
     currency = constants.currency,
     country = constants.country,
+    currencyMap = constants.currencyMap,
     stores = constants.stores;
 
 let router = require(`express`).Router();
 const {OperationHelper} = require(`apac`);
+
+function convertCurrency (price, from, to) {
+    let convertedPrice = (price / module.parent.rates[from]) * module.parent.rates[to];
+    return +(Math.round(convertedPrice + "e+2")  + "e-2");
+}
 
 function fromBestbuy(req, callback) {
 
@@ -35,6 +41,7 @@ function fromBestbuy(req, callback) {
 
     request(url, function (error, response, body) {
         let products;
+        let currencyCode = currencyMap[req.geodata.country] || currency.CAD;
         if (!error && response.statusCode == 200 && (products = JSON.parse(body).products)) {
             let cgBBProducts = [];
             for (let i = products.length - 1; i > -1; i--) {
@@ -42,10 +49,12 @@ function fromBestbuy(req, callback) {
                     products[i].sku,
                     products[i].name,
                     req.params.category,
-                    products[i].regularPrice,
-                    products[i].salePrice,
+                    products[i].regularPrice ? 
+                        convertCurrency(products[i].regularPrice, currency.USD, currencyCode) : null,
+                    products[i].salePrice ? 
+                        convertCurrency(products[i].salePrice, currency.USD, currencyCode) : null,
                     stores.bestbuy,
-                    currency.USD,
+                    currencyCode,
                     products[i].mobileUrl,
                     products[i].thumbnailImage,
                     country.US
@@ -67,6 +76,8 @@ function fromAmazon(req, callback) {
 
     let cgCategory = categories.get(req.params.category);
     cgCategory = cgCategory ? cgCategory.amazon : "All";
+
+    let currencyCode = currencyMap[req.geodata.country] || currency.CAD;
 
     const opHelper = new OperationHelper({
         awsId: amazonId,
@@ -100,23 +111,30 @@ function fromAmazon(req, callback) {
                 if (resultjs.items && resultjs.items.item) {
                     products = resultjs.items.item;
                     for (let i = products.length - 1; i > -1; i--) {
-                        var price = 0;
-                        var salePrice = null;
-                        var currencyCode = "CAD";
+                        let price;
+                        let salePrice;
+                        let currencyCodeDefault = currency.CAD;
                         if (products[i].itemattributes.listprice) {
                             price = parseFloat(products[i].itemattributes.listprice.amount) / 100;
-                            currencyCode = products[i].itemattributes.listprice.currencycode;
+                            currencyCodeDefault = products[i].itemattributes.listprice.currencyCodeDefault;
                         }
-                        else if (products[i].offersummary.lowestnewprice) {
+                        else if (products[i].offersummary && products[i].offersummary.lowestnewprice) {
                             price = parseFloat(products[i].offersummary.lowestnewprice.amount) / 100;
-                            currencyCode = products[i].offersummary.lowestnewprice.currencycode;
+                            currencyCodeDefault = products[i].offersummary.lowestnewprice.currencyCodeDefault;
                         }
-                        else if (products[i].offers.offer.offerlisting.price) {
-                            price = parseFloat(products[i].offers.offer.offerlisting.price.amount) / 100;
-                            currencyCode = products[i].offers.offer.offerlisting.price.currencycode;
+                        else if (products[i].offers && products[i].offers.offer && 
+                                products[i].offers.offer.offerlisting) {
+                            if (products[i].offers.offer.offerlisting.price) {
+                                price = parseFloat(products[i].offers.offer.offerlisting.price.amount) / 100;
+                                currencyCodeDefault = products[i].offers.offer.offerlisting.price.currencyCodeDefault;
+                            }
+                            if (products[i].offers.offer.offerlisting.saleprice) {
+                                salePrice = parseFloat(products[i].offers.offer.offerlisting.saleprice.amount) / 100;
+                            }
                         }
-                        if (products[i].offers.offer.offerlisting.saleprice) {
-                            salePrice = parseFloat(products[i].offers.offer.offerlisting.saleprice.amount) / 100;
+                        if (currencyCodeDefault && (currencyCodeDefault !== currency.CAD)) {
+                            price = convertCurrency(price, currencyCodeDefault, currencyCode);
+                            salePrice = salePrice ? convertCurrency(salePrice, currencyCodeDefault, currencyCode) : null;
                         }
                         cgAProducts.push(new Product(
                             products[i].asin ? products[i].asin : null,
@@ -125,10 +143,10 @@ function fromAmazon(req, callback) {
                             price,
                             salePrice,
                             stores.amazon,
-                            currencyCode,
+                            currencyMap[req.geodata.country] || currency.CAD,
                             products[i].detailpageurl,
-                            products[i].smallimage.url,
-                            currencyCode === currency.CAD ? country.CA : country.US
+                            products[i].smallimageurl,
+                            currencyCodeDefault === currency.CAD ? country.CA : country.US
                         ));
                     }
                 }
@@ -156,17 +174,22 @@ function fromWalmart(req, callback) {
 
     request(url, function (error, response, body) {
         let products;
+        let currencyCode = currencyMap[req.geodata.country] || currency.CAD;
         if (!error && response.statusCode == 200 && (products = JSON.parse(body).items)) {
             let cgWProducts = [];
             for (let i = products.length - 1; i > -1; i--) {
+                let price = products[i].msrp || null;
+                let salePrice = products[i].salePrice || null;
                 cgWProducts.push(new Product(
                     products[i].itemId,
                     products[i].name,
                     products[i].categoryPath,
-                    products[i].msrp,
-                    products[i].salePrice,
+                    products[i].msrp ? 
+                        convertCurrency(products[i].msrp, currency.USD, currencyCode) : null,
+                    products[i].salePrice ? 
+                        convertCurrency(products[i].salePrice, currency.USD, currencyCode) : null,
                     stores.walmart,
-                    currency.USD,
+                    currencyMap[req.geodata.country] || currency.CAD,
                     products[i].productUrl,
                     products[i].thumbnailImage,
                     country.US
@@ -205,26 +228,33 @@ function fromEbay(req, callback) {
 
     request(url, function (error, response, body) {
         let products;
+        let currencyCode = currencyMap[req.geodata.country] || currency.CAD;
         if (!error && response.statusCode == 200 
             && (products = JSON.parse(body)
                             .findItemsByKeywordsResponse[0].searchResult[0].item)) {
             let cgEProducts = [];
             for (let i = products.length - 1; i > -1; i--) {
+                let price;
+                let currencyCodeDefault = currency.CAD;
+                if (products[i].sellingStatus && 
+                    products[i].sellingStatus[0].currentPrice) {
+                        price = Number(products[i].sellingStatus[0].currentPrice[0].__value__) || null;
+                        currencyCodeDefault = products[i].sellingStatus[0].currentPrice[0]['@currencyId'] || null;
+                }
+                if (currencyCodeDefault && (currencyCodeDefault !== currency.CAD)) {
+                    price = price ? convertCurrency(price, currencyCodeDefault, currencyCode) : null;
+                }
                 cgEProducts.push(new Product(
                     products[i].itemId ? Number(products[i].itemId[0]) : null,
                     products[i].title ? products[i].title[0] : null,
                     products[i].primaryCategory ? products[i].primaryCategory[0].categoryName[0] : null,
-                    products[i].sellingStatus ? 
-                        (products[i].sellingStatus[0].convertedCurrentPrice ? 
-                            Number(products[i].sellingStatus[0].convertedCurrentPrice[0].__value__) : 
-                            Number(products[i].sellingStatus[0].currentPrice[0].__value__)
-                        ) : null,
+                    price,
                     null,
                     stores.ebay,
-                    currency.CAD,
+                    currencyMap[req.geodata.country] || currency.CAD,
                     products[i].viewItemURL ? products[i].viewItemURL[0] : null,
                     products[i].galleryURL ? products[i].galleryURL[0] : null,
-                    country.CA
+                    currencyCodeDefault === currency.CAD ? country.CA : country.US
                 ));
             }
             callback(null, cgEProducts);
