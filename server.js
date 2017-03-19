@@ -14,7 +14,11 @@ let // PORT and IP where server listens
     Product = module.Product = require(`./models/Product.js`),
     rates = module.rates = {},
     constants = module.constants = require(`./lib/constants.js`),
-    utils = require(`./lib/utils.js`);
+    utils = module.utils = require(`./lib/utils.js`),
+    fromBestbuy = module.fromBestbuy = require(`./bin/products-bestbuy.js`).fromBestbuy,
+    fromAmazon = module.fromAmazon = require(`./bin/products-amazon.js`).fromAmazon,
+    fromEbay = module.fromEbay = require(`./bin/products-ebay.js`).fromEbay,
+    fromWalmart = module.fromWalmart = require(`./bin/products-walmart.js`).fromWalmart;
 
     require(`dotenv`).config();
 
@@ -24,10 +28,6 @@ let // PORT and IP where server listens
  */
 let compression = require(`compression`);
 server.use(compression());
-
-if (environment === `production`) {
-    server.enable(`trust proxy`);
-}
 
 /**
  * Add security headers
@@ -138,9 +138,6 @@ MongoClient.connect(mongoURL, function(err, db) {
                 maxAge: 30 * 60 * 1000 // 30 mins
             }
         }
-        if (environment === `production`) {
-            server.set(`trust proxy`, 1); // trust first proxy
-        }
         if (process.env.IS_SECURE === `1`) {
             sess.cookie.secure = true; // serve secure cookies
             sess.cookie.httpOnly = true;
@@ -153,14 +150,23 @@ MongoClient.connect(mongoURL, function(err, db) {
         module.users = require(`./bin/db-users.js`);
         module.products = require(`./bin/db-products.js`);
 
-        server.use(`/`, require(`./bin/user-apis.js`));
-        server.use(`/`, require(`./bin/product-apis.js`));
+        server.use(require(`./bin/user-apis.js`));
+        server.use(require(`./bin/product-apis.js`));
         
         log(`Connected successfully to database.`);
     } else log(`Database error: ${err}`);
 });
 
-server.use(`/`, require(`./bin/cheapest.js`));
+if (environment === `production`) {
+    server.set(`trust proxy`, 1); // trust first proxy
+    server.use(function (req, res, next) {
+        req.geodata = {};
+        req.geodata.country = geoip.lookup(req.ip).country;
+        next();
+    });
+}
+
+server.use(require(`./bin/cheapest.js`));
 
 server.listen(PORT, IP, function() {
     log(`Server started in ${environment} mode.`);

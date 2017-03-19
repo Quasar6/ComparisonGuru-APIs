@@ -5,7 +5,6 @@ let log = module.parent.log,
 
 // Add new product to DB
 exports.save = function (product, callback) {
-
     products.update(
         { id: product.id },
         {
