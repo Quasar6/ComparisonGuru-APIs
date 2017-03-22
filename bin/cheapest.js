@@ -5,9 +5,8 @@ let users = module.parent.users,
     fromBestbuy = module.parent.fromBestbuy,
     fromWalmart = module.parent.fromWalmart,
     fromEbay = module.parent.fromEbay,
-    fromAmazon = module.parent.fromAmazon;
-
-let router = require(`express`).Router();
+    fromAmazon = module.parent.fromAmazon,
+    router = require(`express`).Router();
 
 router.get(`/cheapest/walmart/:query`, function (req, res) {
     res.redirect(`/cheapest/walmart/${req.params.query}/undefined_category`);

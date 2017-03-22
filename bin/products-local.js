@@ -1,9 +1,6 @@
 let products = module.parent.products,
-    log = module.parent.log;
-
-let router = require(`express`).Router();
-
-let moment = require(`moment`);
+    log = module.parent.log,
+    router = require(`express`).Router();
 
 router.post(`/products`, function (req, res) {
 
@@ -20,15 +17,12 @@ router.post(`/products`, function (req, res) {
             res.status(300);
             response.error = `Could not save product. Try again.`;
         } else if (saved) {
-            response.success = true;
             res.status(200);
+            response.success = true;
         } else {
             res.status(400);
             response.error = `Server error. Try again.`;
         }
-
-        log(`RESPONSE FROM POST /products: ${JSON.stringify(response)}`);
-
         res.send(response);
     });
 });
@@ -48,9 +42,6 @@ router.get(`/products`, function (req, res) {
             res.status(200);
             response = {"error": "No products found. Try again."};
         }
-
-        log(`RESPONSE FROM GET /products: ${JSON.stringify(response)}`);
-
         res.send(response);
     });
 });

@@ -1,7 +1,8 @@
 let log = module.parent.log,
     // Get collection `products`
     products = module.parent.db.collection(`products`),
-    ObjectId = module.parent.ObjectId;
+    ObjectId = module.parent.ObjectId,
+    moment = require(`moment`);
 
 // Add new product to DB
 exports.save = function (product, callback) {
@@ -9,7 +10,11 @@ exports.save = function (product, callback) {
         { id: product.id },
         {
             $inc: { hits: 1 },
-            $setOnInsert: product,
+            $push: { trend: {
+                price: product.salePrice || product.price,
+                date: moment().format()
+            }},
+            $setOnInsert: product
         },
         { upsert: true },
         function (err, doc) {
@@ -30,7 +35,7 @@ exports.findByID = function (uid, callback) {
 
 // Find all products
 exports.findAll = function (callback) {
-    products.find({}).sort({hits: 1}).limit(10).toArray(function (err, docs) {
+    products.find({}).sort({hits: -1}).limit(10).toArray(function (err, docs) {
         callback(err, docs);
     });
 }

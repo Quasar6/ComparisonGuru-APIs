@@ -3,22 +3,23 @@ let // PORT and IP where server listens
     IP = process.env.OPENSHIFT_NODEJS_IP || process.env.IP || process.env.npm_package_config_ip || `0.0.0.0`,
     express = require(`express`), // Express server
     server = express(),
-    log = module.log = function (message) { // Shorthand logging function
-        console.log(`\n${message}`);
-    },
     environment = server.get(`env`), // Environment (production or development) where server has been deployed
-    request = module.request = require(`request`),
-    geoip = module.geoip = require(`geoip-lite`),
-    async = module.async = require(`async`),
-    CronJob = require(`cron`).CronJob,
-    Product = module.Product = require(`./models/Product.js`),
-    rates = module.rates = {},
-    constants = module.constants = require(`./lib/constants.js`),
-    utils = module.utils = require(`./lib/utils.js`),
-    fromBestbuy = module.fromBestbuy = require(`./bin/products-bestbuy.js`).fromBestbuy,
-    fromAmazon = module.fromAmazon = require(`./bin/products-amazon.js`).fromAmazon,
-    fromEbay = module.fromEbay = require(`./bin/products-ebay.js`).fromEbay,
-    fromWalmart = module.fromWalmart = require(`./bin/products-walmart.js`).fromWalmart;
+    CronJob = require(`cron`).CronJob;
+
+    module.request = require(`request`);
+
+let utils = module.utils = require(`./lib/utils.js`),
+    log = module.log = utils.log,
+    geoip = module.geoip = require(`geoip-lite`);
+
+    module.async = require(`async`);
+    module.rates = {};
+    module.Product = require(`./models/Product.js`);
+    module.constants = require(`./lib/constants.js`);
+    module.fromBestbuy = require(`./bin/products-bestbuy.js`).fromBestbuy;
+    module.fromAmazon = require(`./bin/products-amazon.js`).fromAmazon;
+    module.fromEbay = require(`./bin/products-ebay.js`).fromEbay;
+    module.fromWalmart = require(`./bin/products-walmart.js`).fromWalmart;
 
     require(`dotenv`).config();
 
@@ -48,23 +49,8 @@ server.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 
 // Use pug for static content
 server.set(`view engine`, `pug`);
-
-server.use(function (req, res, next) {
-    //switch (req.subdomains[0]) {
-    //    case `www`:
-            server.set(`views`, `./static/home`);
-            server.use(`/`, express.static(__dirname + `/static/home`));
-            //break;
-    /*    case `ryan`:
-            server.set(`static`, `./static/ryan`);
-            server.use(`/`, express.static(__dirname + `/static/ryan`));
-            break;
-        default:
-            server.set(`static`, `./static/home`);
-            server.use(`/`, express.static(__dirname + `/static/home`));
-    }*/
-    next();
-});
+server.set(`views`, `./static/home`);
+server.use(`/`, express.static(__dirname + `/static/home`));
 
 // Redirect /static request to /
 server.use(`/static`, function (req, res) {
@@ -93,10 +79,6 @@ if (process.env.OPENSHIFT_MONGODB_DB_USERNAME) {
 if (process.env.MONGOLAB_URI) {
     mongoURL = process.env.MONGOLAB_URI;
 }
-
-/*if (server.get(`env`) === `production`) {
-    mongoURL += `?ssl=true`; // Secure connection to MongoDB
-}*/
 
 // Create connection to DB at mongoURL
 MongoClient.connect(mongoURL, function(err, db) {
@@ -151,20 +133,18 @@ MongoClient.connect(mongoURL, function(err, db) {
         module.products = require(`./bin/db-products.js`);
 
         server.use(require(`./bin/user-apis.js`));
-        server.use(require(`./bin/product-apis.js`));
+        server.use(require(`./bin/products-local.js`));
         
         log(`Connected successfully to database.`);
     } else log(`Database error: ${err}`);
 });
 
-if (environment === `production`) {
-    server.set(`trust proxy`, 1); // trust first proxy
-    server.use(function (req, res, next) {
-        req.geodata = {};
-        req.geodata.country = geoip.lookup(req.ip).country;
-        next();
-    });
-}
+environment === `production` && server.set(`trust proxy`, 1); // trust first proxy
+server.use(function (req, res, next) {
+    req.geodata = {};
+    environment === `production` && (req.geodata.country = geoip.lookup(req.ip).country);
+    next();
+});
 
 server.use(require(`./bin/cheapest.js`));
 
@@ -174,7 +154,7 @@ server.listen(PORT, IP, function() {
 
     utils.refreshRates();
 
-    new CronJob(`0 0 * * *`, function() {
+    new CronJob(`0 1 * * *`, function() {
         utils.refreshRates();
     }, null, true, 'America/Toronto');
 });
