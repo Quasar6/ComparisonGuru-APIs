@@ -33,6 +33,7 @@
   "homepage": "https://github.com/Quasar6/ComparisonGuru-APIs#readme",
   "dependencies": {
     "apac": "^3.0.2",
+    "assert": "^1.4.1",
     "async": "^2.1.4",
     "body-parser": "^1.17.1",
     "compression": "^1.6.2",
