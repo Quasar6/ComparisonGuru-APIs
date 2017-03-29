@@ -8,12 +8,13 @@ let // PORT and IP where server listens
 
     module.request = require(`request`);
 
-let utils = module.utils = require(`./lib/utils.js`),
+let fs = module.fs = require(`fs`),
+    utils = module.utils = require(`./lib/utils.js`),
     log = module.log = utils.log,
-    geoip = module.geoip = require(`geoip-lite`);
+    geoip = module.geoip = require(`geoip-lite`),
+    rates = module.rates = {};
 
     module.async = require(`async`);
-    module.rates = {};
     module.Product = require(`./models/Product.js`);
     module.constants = require(`./lib/constants.js`);
     module.fromBestbuy = require(`./bin/products-bestbuy.js`).fromBestbuy;
@@ -149,12 +150,21 @@ server.use(function (req, res, next) {
 server.use(require(`./bin/cheapest.js`));
 
 server.listen(PORT, IP, function() {
+
     log(`Server started in ${environment} mode.`);
     log(`Server home: http://${IP}:${PORT}/`);
 
-    utils.refreshRates();
-
-    new CronJob(`0 1 * * *`, function() {
+    fs.readFile('./lib/exchange-rates.json', 'utf8', function(err, data) {
+        if (!err) {
+            rates = module.rates = JSON.parse(data);
+        } else if (err.code == 'ENOENT') {
+            utils.refreshRates();
+        } else {
+            log(err);
+        }
+    });
+    
+    new CronJob("00 00 * * *", function() {
         utils.refreshRates();
     }, null, true, 'America/Toronto');
 });
