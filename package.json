@@ -8,6 +8,7 @@
     "ip": "0.0.0.0"
   },
   "scripts": {
+    "test": "mocha",
     "start": "pm2 start server.js --node-args \"--max_old_space_size=500\"",
     "stop": "pm2 stop all",
     "restart": "pm2 restart all"
@@ -33,7 +34,6 @@
   "homepage": "https://github.com/Quasar6/ComparisonGuru-APIs#readme",
   "dependencies": {
     "apac": "^3.0.2",
-    "assert": "^1.4.1",
     "async": "^2.1.4",
     "body-parser": "^1.17.1",
     "compression": "^1.6.2",
@@ -50,5 +50,8 @@
     "request": "^2.81.0",
     "uuid": "^3.0.1",
     "xml2js": "^0.4.17"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
   }
 }
