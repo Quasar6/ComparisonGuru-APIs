@@ -23,6 +23,24 @@ exports.save = function (product, callback) {
     );
 }
 
+exports.saveReview = function (product, callback) {
+    products.update(
+        { id: product.productId },
+        {
+            $push: { reviews: {
+                comment: product.comment,
+                rating: product.rating,
+                date: product.dateTime,
+                userName: product.userName,
+                userImage: product.userImage
+            }}
+        },
+        function (err, doc) {
+            callback(err, doc);
+        }
+    );
+}
+
 // Find product by id
 exports.findByID = function (uid, callback) {
     products.findOne(

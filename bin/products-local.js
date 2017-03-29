@@ -27,6 +27,31 @@ router.post(`/products`, function (req, res) {
     });
 });
 
+router.post(`/products/review`, function (req, res) {
+
+    log(`REQUEST ON POST /products/review: ${JSON.stringify(req.body)}`);
+
+    products.saveReview(req.body, function(err, saved) {
+        let response = {};
+        response.success = false;
+        if (err) {
+            log(`DB ERROR: ${err}`);
+            res.status(500);
+            response.error = `Database error. Try after some time.`;
+        } else if (!saved) {
+            res.status(300);
+            response.error = `Could not save product. Try again.`;
+        } else if (saved) {
+            res.status(200);
+            response.success = true;
+        } else {
+            res.status(400);
+            response.error = `Server error. Try again.`;
+        }
+        res.send(response);
+    });
+});
+
 router.get(`/products`, function (req, res) {
 
     log(`REQUEST ON GET /products`);
