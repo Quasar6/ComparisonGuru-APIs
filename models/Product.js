@@ -7,7 +7,7 @@ function Product (id, name, category, price, salePrice, store, currency, url, im
     this.store = store;
     this.currency = currency;
     this.url = url;
-    this.imageURL = imageURL.replace('http:', 'https:');
+    if (imageURL) this.imageURL = imageURL.replace('http:', 'https:');
     this.shippingCountry = shippingCountry;
 }
 

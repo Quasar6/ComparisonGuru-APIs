@@ -130,10 +130,8 @@ MongoClient.connect(mongoURL, function(err, db) {
         module.db = db;
         module.ObjectId = require(`mongodb`).ObjectId;
 
-        module.users = require(`./bin/db-users.js`);
         module.products = require(`./bin/db-products.js`);
 
-        server.use(require(`./bin/user-apis.js`));
         server.use(require(`./bin/products-local.js`));
         
         log(`Connected successfully to database.`);

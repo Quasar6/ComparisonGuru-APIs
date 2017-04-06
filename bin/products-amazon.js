@@ -88,7 +88,7 @@ module.exports = {
                                 stores.amazon,
                                 currencyMap[req.geodata.country] || currency.CAD,
                                 products[i].detailpageurl,
-                                products[i].smallimage.url,
+                                products[i].smallimage ? products[i].smallimage.url : null,
                                 currencyCodeDefault === currency.CAD ? country.CA : country.US
                             ));
                         }
