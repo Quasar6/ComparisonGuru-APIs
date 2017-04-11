@@ -30,7 +30,7 @@ exports.saveReview = function (product, callback) {
             $push: { reviews: {
                 comment: product.comment,
                 rating: product.rating,
-                date: product.dateTime,
+                date: moment().format(),
                 userName: product.userName,
                 userImage: product.userImage
             }}

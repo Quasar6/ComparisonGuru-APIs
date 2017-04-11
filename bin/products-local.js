@@ -18,12 +18,13 @@ router.post(`/products`, function (req, res) {
             response.error = `Could not save product. Try again.`;
         } else if (saved) {
             res.status(200);
+            saved.success = true;
             response.success = true;
         } else {
             res.status(400);
             response.error = `Server error. Try again.`;
         }
-        res.send(response);
+        res.send(saved);
     });
 });
 
