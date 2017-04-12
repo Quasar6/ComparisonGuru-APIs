@@ -112,6 +112,7 @@ let asyncParallelCallback = function(err, products) {
     cgProducts = cgProducts.sort(function(p1, p2) {
         return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
     });
+    console.log(JSON.stringify(cgProducts));
     cgProducts = improveResults(cgProducts);
     this.res.json(cgProducts);
 }
