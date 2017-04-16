@@ -80,7 +80,7 @@ module.exports = {
                                 salePrice = salePrice ? convertCurrency(salePrice, currencyCodeDefault, currencyCode) : null;
                             }
                             cgAProducts.push(new Product(
-                                products[i].asin ? products[i].asin : null,
+                                products[i].asin ? String(products[i].asin) : null,
                                 products[i].itemattributes ? products[i].itemattributes.title : null,
                                 products[i].itemattributes ? products[i].itemattributes.binding : null,
                                 price,

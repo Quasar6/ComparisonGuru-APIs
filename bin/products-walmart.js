@@ -32,7 +32,7 @@ module.exports = {
                     let price = products[i].msrp || null;
                     let salePrice = products[i].salePrice || null;
                     cgWProducts.push(new Product(
-                        products[i].itemId,
+                        String(products[i].itemId),
                         products[i].name,
                         products[i].categoryPath,
                         products[i].msrp ? 

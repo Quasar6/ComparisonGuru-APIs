@@ -51,7 +51,7 @@ module.exports = {
                         price = price ? convertCurrency(price, currencyCodeDefault, currencyCode) : null;
                     }
                     cgEProducts.push(new Product(
-                        products[i].itemId ? Number(products[i].itemId[0]) : null,
+                        products[i].itemId ? String(products[i].itemId[0]) : null,
                         products[i].title ? products[i].title[0] : null,
                         products[i].primaryCategory ? products[i].primaryCategory[0].categoryName[0] : null,
                         price,

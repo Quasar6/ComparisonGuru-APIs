@@ -6,7 +6,7 @@ let log = module.parent.log,
 
 // Add new product to DB
 exports.save = function (product, callback) {
-    products.findOneAndUpdate(
+    products.update(
         { id: product.id },
         {
             $inc: { hits: 1 },
@@ -24,18 +24,20 @@ exports.save = function (product, callback) {
 }
 
 exports.saveReview = function (product, callback) {
+    let review = {
+        comment: product.comment,
+        rating: product.rating,
+        date: moment().format(),
+        userName: product.userName,
+        userImage: product.userImage
+    }
     products.findOneAndUpdate(
         { id: product.productId },
         {
-            $push: { reviews: {
-                comment: product.comment,
-                rating: product.rating,
-                date: moment().format(),
-                userName: product.userName,
-                userImage: product.userImage
-            }}
+            $push: { reviews: review}
         },
         function (err, doc) {
+            doc.value.reviews.push(review);
             callback(err, doc);
         }
     );

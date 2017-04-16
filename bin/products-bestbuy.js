@@ -38,7 +38,7 @@ module.exports = {
                 let cgBBProducts = [];
                 for (let i = products.length - 1; i > -1; i--) {
                     cgBBProducts.push(new Product(
-                        products[i].sku,
+                        String(products[i].sku),
                         products[i].name,
                         req.params.category,
                         products[i].regularPrice ? 
