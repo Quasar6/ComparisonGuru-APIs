@@ -56,6 +56,7 @@ module.exports = {
                         products[i].primaryCategory ? products[i].primaryCategory[0].categoryName[0] : null,
                         price,
                         null,
+                        null,
                         stores.ebay,
                         currencyMap[req.geodata.country] || currency.CAD,
                         products[i].viewItemURL ? products[i].viewItemURL[0] : null,
