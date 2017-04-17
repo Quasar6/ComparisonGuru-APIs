@@ -1,9 +1,10 @@
-function Product (id, name, category, price, salePrice, store, currency, url, imageURL, shippingCountry) {
+function Product (id, name, category, price, salePrice, longDesc, store, currency, url, imageURL, shippingCountry) {
     this.id = id;
     this.name = name;
     this.category = category;
     this.price = price;
     this.salePrice = salePrice;
+    this.description = longDesc;
     this.store = store;
     this.currency = currency;
     this.url = url;

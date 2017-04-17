@@ -23,7 +23,7 @@ module.exports = {
                 + `&format=json`
                 + `&condition=new`
                 + `&pageSize=10`;
-        
+
         let cgCategory;
         if (cgCategory = categories.get(req.params.category)) {
             url = url.substr(0, url.indexOf(`(search=`))
@@ -45,6 +45,7 @@ module.exports = {
                             convertCurrency(products[i].regularPrice, currency.USD, currencyCode) : null,
                         products[i].salePrice ? 
                             convertCurrency(products[i].salePrice, currency.USD, currencyCode) : null,
+                        products[i].longDescription,
                         stores.bestbuy,
                         currencyCode,
                         products[i].mobileUrl,

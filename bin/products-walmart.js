@@ -39,6 +39,7 @@ module.exports = {
                             convertCurrency(products[i].msrp, currency.USD, currencyCode) : null,
                         products[i].salePrice ? 
                             convertCurrency(products[i].salePrice, currency.USD, currencyCode) : null,
+                        products[i].longDescription || null,
                         stores.walmart,
                         currencyMap[req.geodata.country] || currency.CAD,
                         products[i].productUrl,

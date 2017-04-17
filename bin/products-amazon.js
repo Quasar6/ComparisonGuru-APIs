@@ -85,6 +85,7 @@ module.exports = {
                                 products[i].itemattributes ? products[i].itemattributes.binding : null,
                                 price,
                                 salePrice,
+                                products[i].itemattributes,
                                 stores.amazon,
                                 currencyMap[req.geodata.country] || currency.CAD,
                                 products[i].detailpageurl,
