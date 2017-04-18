@@ -54,7 +54,7 @@ module.exports = {
                         products[i].itemId ? String(products[i].itemId[0]) : null,
                         products[i].title ? products[i].title[0] : null,
                         products[i].primaryCategory ? products[i].primaryCategory[0].categoryName[0] : null,
-                        price,
+                        price ? +(Math.round(price + "e+2")  + "e-2") : null,
                         null,
                         null,
                         stores.ebay,

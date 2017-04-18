@@ -76,16 +76,18 @@ module.exports = {
                                 }
                             }
                             if (currencyCodeDefault && (currencyCodeDefault !== currency.CAD)) {
-                                price = convertCurrency(price, currencyCodeDefault, currencyCode);
+                                price = price ? convertCurrency(price, currencyCodeDefault, currencyCode) : null;
                                 salePrice = salePrice ? convertCurrency(salePrice, currencyCodeDefault, currencyCode) : null;
                             }
+                            price = price ? +(Math.round(price + "e+2")  + "e-2") : null;
+                            salePrice = salePrice ? +(Math.round(salePrice + "e+2")  + "e-2") : null,
                             cgAProducts.push(new Product(
                                 products[i].asin ? String(products[i].asin) : null,
                                 products[i].itemattributes ? products[i].itemattributes.title : null,
                                 products[i].itemattributes ? products[i].itemattributes.binding : null,
-                                price,
-                                salePrice,
-                                products[i].itemattributes,
+                                price || null,
+                                salePrice < price ? salePrice || null : null,
+                                JSON.stringify(products[i].itemattributes),
                                 stores.amazon,
                                 currencyMap[req.geodata.country] || currency.CAD,
                                 products[i].detailpageurl,

@@ -37,14 +37,16 @@ module.exports = {
             if (!error && response.statusCode == 200 && (products = JSON.parse(body).products)) {
                 let cgBBProducts = [];
                 for (let i = products.length - 1; i > -1; i--) {
+                    let price = products[i].regularPrice ? 
+                            +(Math.round(convertCurrency(products[i].regularPrice, currency.USD, currencyCode) + "e+2")  + "e-2") : null;
+                    let salePrice = products[i].salePrice ? 
+                            +(Math.round(convertCurrency(products[i].salePrice, currency.USD, currencyCode) + "e+2")  + "e-2") : null;
                     cgBBProducts.push(new Product(
                         String(products[i].sku),
                         products[i].name,
                         req.params.category,
-                        products[i].regularPrice ? 
-                            convertCurrency(products[i].regularPrice, currency.USD, currencyCode) : null,
-                        products[i].salePrice ? 
-                            convertCurrency(products[i].salePrice, currency.USD, currencyCode) : null,
+                        price || null,
+                        salePrice < price ? salePrice || null : null,
                         products[i].longDescription,
                         stores.bestbuy,
                         currencyCode,

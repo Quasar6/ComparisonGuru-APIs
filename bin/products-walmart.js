@@ -29,16 +29,16 @@ module.exports = {
             if (!error && response.statusCode == 200 && (products = JSON.parse(body).items)) {
                 let cgWProducts = [];
                 for (let i = products.length - 1; i > -1; i--) {
-                    let price = products[i].msrp || null;
-                    let salePrice = products[i].salePrice || null;
+                    let price = products[i].msrp ? 
+                            +(Math.round(convertCurrency(products[i].msrp, currency.USD, currencyCode) + "e+2")  + "e-2") : null;
+                    let salePrice = products[i].salePrice ? 
+                            +(Math.round(convertCurrency(products[i].salePrice, currency.USD, currencyCode) + "e+2")  + "e-2") : null;
                     cgWProducts.push(new Product(
                         String(products[i].itemId),
                         products[i].name,
                         products[i].categoryPath,
-                        products[i].msrp ? 
-                            convertCurrency(products[i].msrp, currency.USD, currencyCode) : null,
-                        products[i].salePrice ? 
-                            convertCurrency(products[i].salePrice, currency.USD, currencyCode) : null,
+                        price || null,
+                        salePrice < price ? salePrice || null : null,
                         products[i].longDescription || null,
                         stores.walmart,
                         currencyMap[req.geodata.country] || currency.CAD,

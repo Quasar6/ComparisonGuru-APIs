@@ -1,6 +1,6 @@
 let users = module.parent.users,
     log = module.parent.log,
-    improveResults = module.parent.utils.improveResults,
+    optimizeResults = module.parent.utils.optimizeResults,
     geoip = module.parent.geoip,
     async = module.parent.async,
     fromBestbuy = module.parent.fromBestbuy,
@@ -111,9 +111,8 @@ let asyncParallelCallback = function(err, products) {
     }
     cgProducts = cgProducts.sort(function(p1, p2) {
         return (p1.salePrice || p1.price) - (p2.salePrice || p2.price);
-    });
-    console.log(JSON.stringify(cgProducts));
-    cgProducts = improveResults(cgProducts);
+    }).filter(function(p) {return (p.price || p.salePrice)});
+    cgProducts = optimizeResults(cgProducts);
     this.res.json(cgProducts);
 }
 
